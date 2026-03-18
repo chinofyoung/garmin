@@ -1,5 +1,6 @@
 import Toybox.Application;
 import Toybox.Graphics;
+import Toybox.Lang;
 
 enum DataFieldType {
     FIELD_VO2MAX = 0,

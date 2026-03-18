@@ -1,5 +1,6 @@
 import Toybox.WatchUi;
 import Toybox.Graphics;
+import Toybox.Lang;
 import Toybox.System;
 
 class WatchFaceView extends WatchUi.WatchFace {

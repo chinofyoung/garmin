@@ -1,5 +1,6 @@
 import Toybox.Activity;
 import Toybox.ActivityMonitor;
+import Toybox.Lang;
 import Toybox.System;
 import Toybox.Weather;
 import Toybox.UserProfile;
