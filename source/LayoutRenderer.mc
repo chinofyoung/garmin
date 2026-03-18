@@ -28,6 +28,7 @@ class LayoutRenderer {
 
         _drawRingGauges(dc, data, settings);
         _drawTime(dc, settings);
+        _drawDataGrid(dc, data, settings);
     }
 
     function drawAlwaysOn(dc as Dc, data as DataProvider, settings as SettingsManager, offset as Number) as Void {
@@ -200,5 +201,140 @@ class LayoutRenderer {
         // Separator line
         dc.setColor(0x1A1A1A, Graphics.COLOR_TRANSPARENT);
         dc.drawLine(_centerX - 100, CENTER_ZONE_END, _centerX + 100, CENTER_ZONE_END);
+    }
+
+    hidden function _drawDataGrid(dc as Dc, data as DataProvider, settings as SettingsManager) as Void {
+        var palette = settings.getColorPalette();
+        var labelColor = palette[3];
+        var startY = CENTER_ZONE_END + 15;
+        var rowHeight = 40;
+
+        // 3 columns, 2 rows
+        var colPositions = [_centerX - 100, _centerX, _centerX + 100] as Array<Number>;
+
+        for (var row = 0; row < 2; row++) {
+            for (var col = 0; col < 3; col++) {
+                var fieldIdx = row * 3 + col;
+                var fieldType = settings.dataFields[fieldIdx];
+                if (fieldType == FIELD_NONE) { continue; }
+
+                var cx = colPositions[col];
+                var cy = startY + (row * rowHeight);
+                var label = _getFieldLabel(fieldType);
+                var value = _getFieldValue(fieldType, data, settings);
+                var color = _getFieldColor(fieldType, settings);
+
+                // Label
+                dc.setColor(color, Graphics.COLOR_TRANSPARENT);
+                dc.drawText(cx, cy, Graphics.FONT_XTINY, label, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+
+                // Value
+                dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+                dc.drawText(cx, cy + 16, Graphics.FONT_TINY, value, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+            }
+        }
+
+        // Footer: sunrise/sunset + week number
+        _drawFooter(dc, data);
+    }
+
+    hidden function _getFieldLabel(fieldType as Number) as String {
+        switch (fieldType) {
+            case FIELD_VO2MAX: return "VO2 MAX";
+            case FIELD_CALORIES: return "CALORIES";
+            case FIELD_DISTANCE: return "DISTANCE";
+            case FIELD_WEATHER: return "WEATHER";
+            case FIELD_NOTIFICATIONS: return "NOTIFS";
+            case FIELD_FLOORS: return "FLOORS";
+            case FIELD_ACTIVE_MINUTES: return "ACTIVE";
+            case FIELD_SECONDS: return "SECONDS";
+            case FIELD_WEEK_NUMBER: return "WEEK";
+            default: return "";
+        }
+    }
+
+    hidden function _getFieldValue(fieldType as Number, data as DataProvider, settings as SettingsManager) as String {
+        switch (fieldType) {
+            case FIELD_VO2MAX:
+                return data.vo2max != null ? data.vo2max.toString() : "--";
+            case FIELD_CALORIES:
+                return data.calories != null ? data.calories.toString() : "--";
+            case FIELD_DISTANCE:
+                return data.getDistanceFormatted(settings.distKm);
+            case FIELD_WEATHER:
+                return data.getTempFormatted(settings.tempCelsius);
+            case FIELD_NOTIFICATIONS:
+                return data.notifications.toString();
+            case FIELD_FLOORS:
+                return data.floors != null ? data.floors.toString() : "--";
+            case FIELD_ACTIVE_MINUTES:
+                return data.activeMinutes != null ? data.activeMinutes.toString() + "m" : "--";
+            case FIELD_SECONDS:
+                return System.getClockTime().sec.format("%02d");
+            case FIELD_WEEK_NUMBER:
+                return "W" + _calcWeekNumber().toString();
+            default:
+                return "--";
+        }
+    }
+
+    hidden function _getFieldColor(fieldType as Number, settings as SettingsManager) as Number {
+        // Use palette label color for most fields, with ring colors for matching metrics
+        var palette = settings.getColorPalette();
+        switch (fieldType) {
+            case FIELD_VO2MAX: return palette[0];
+            case FIELD_CALORIES: return palette[1];
+            case FIELD_DISTANCE: return palette[2];
+            case FIELD_WEATHER: return palette[0];
+            case FIELD_NOTIFICATIONS: return palette[1];
+            case FIELD_FLOORS: return palette[2];
+            case FIELD_ACTIVE_MINUTES: return palette[0];
+            case FIELD_SECONDS: return palette[3];
+            case FIELD_WEEK_NUMBER: return palette[3];
+            default: return palette[3];
+        }
+    }
+
+    // Approximate week number from month/day (no day_of_year in Gregorian.Info)
+    hidden function _calcWeekNumber() as Number {
+        var info = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
+        var year = info.year as Number;
+        var month = info.month as Number;
+        var febDays = 28;
+        if (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)) {
+            febDays = 29;
+        }
+        var daysInMonth = [0, 31, febDays, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31] as Array<Number>;
+        var dayOfYear = info.day as Number;
+        for (var m = 1; m < month; m++) {
+            dayOfYear += daysInMonth[m];
+        }
+        return (dayOfYear / 7) + 1;
+    }
+
+    hidden function _drawFooter(dc as Dc, data as DataProvider) as Void {
+        var footerY = _height - 30;
+        var footerStr = "";
+
+        if (data.sunrise != null && data.sunset != null) {
+            var sunriseInfo = Gregorian.info(data.sunrise as Time.Moment, Time.FORMAT_SHORT);
+            var sunsetInfo = Gregorian.info(data.sunset as Time.Moment, Time.FORMAT_SHORT);
+            footerStr = Lang.format("rise $1$:$2$ set $3$:$4$", [
+                sunriseInfo.hour.format("%d"),
+                sunriseInfo.min.format("%02d"),
+                sunsetInfo.hour.format("%d"),
+                sunsetInfo.min.format("%02d")
+            ]);
+        }
+
+        var weekNum = _calcWeekNumber();
+        if (!footerStr.equals("")) {
+            footerStr = footerStr + " W" + weekNum.toString();
+        } else {
+            footerStr = "W" + weekNum.toString();
+        }
+
+        dc.setColor(0x444444, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(_centerX, footerY, Graphics.FONT_XTINY, footerStr, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 }
