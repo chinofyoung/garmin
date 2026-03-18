@@ -236,8 +236,6 @@ class LayoutRenderer {
     }
 
     hidden function _drawDataGrid(dc as Dc, data as DataProvider, settings as SettingsManager) as Void {
-        var palette = settings.getColorPalette();
-        var labelColor = palette[3];
         var startY = CENTER_ZONE_END + 15;
         var rowHeight = 40;
 

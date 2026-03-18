@@ -27,6 +27,9 @@ class WatchFaceView extends WatchUi.WatchFace {
         }
 
         if (_isSleeping) {
+            if (System.getDeviceSettings().requiresBurnInProtection) {
+                _burnInOffset = (_burnInOffset + 1) % 10 - 5;
+            }
             (_renderer as LayoutRenderer).drawAlwaysOn(dc, _data, _settings, _burnInOffset);
         } else {
             (_renderer as LayoutRenderer).drawFull(dc, _data, _settings);
@@ -42,18 +45,5 @@ class WatchFaceView extends WatchUi.WatchFace {
     function onExitSleep() as Void {
         _isSleeping = false;
         WatchUi.requestUpdate();
-    }
-
-    // Called every second in always-on mode — must redraw for burn-in shift
-    // Note: onUpdate() is only called once per minute in low-power mode,
-    // so onPartialUpdate is the only way to shift every second.
-    function onPartialUpdate(dc as Dc) as Void {
-        if (System.getDeviceSettings().requiresBurnInProtection) {
-            _burnInOffset = (_burnInOffset + 1) % 10 - 5; // -5 to +4 pixel shift
-        }
-        if (_renderer != null) {
-            _data.refresh();
-            (_renderer as LayoutRenderer).drawAlwaysOn(dc, _data, _settings, _burnInOffset);
-        }
     }
 }
