@@ -1,0 +1,16 @@
+<properties>
+    <property id="ColorScheme" type="number">0</property>
+    <property id="DataField1" type="number">0</property>
+    <property id="DataField2" type="number">1</property>
+    <property id="DataField3" type="number">2</property>
+    <property id="DataField4" type="number">3</property>
+    <property id="DataField5" type="number">5</property>
+    <property id="DataField6" type="number">4</property>
+    <property id="RingGauge1" type="number">0</property>
+    <property id="RingGauge2" type="number">1</property>
+    <property id="RingGauge3" type="number">2</property>
+    <property id="TempUnit" type="number">0</property>
+    <property id="DistUnit" type="number">0</property>
+    <property id="AlwaysOnContent" type="number">0</property>
+    <property id="ShowSeconds" type="boolean">false</property>
+</properties>
