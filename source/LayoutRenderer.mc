@@ -35,10 +35,10 @@ class LayoutRenderer {
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.clear();
 
-        // Shift for burn-in protection
         var ox = offset;
         var oy = offset;
 
+        // Time (always shown, dimmed)
         var clockTime = System.getClockTime();
         var timeStr;
         if (System.getDeviceSettings().is24Hour) {
@@ -50,9 +50,41 @@ class LayoutRenderer {
             timeStr = h.format("%d") + ":" + clockTime.min.format("%02d");
         }
 
-        // Dim time only for AOD_TIME_ONLY
         dc.setColor(0x999999, Graphics.COLOR_TRANSPARENT);
         dc.drawText(_centerX + ox, _centerY + oy - 30, Graphics.FONT_NUMBER_THAI_HOT, timeStr, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+
+        // AOD_TIME_HR: show HR below time
+        if (settings.alwaysOnContent == AOD_TIME_HR) {
+            var hrStr = data.heartRate != null ? data.heartRate.toString() + " bpm" : "-- bpm";
+            dc.setColor(0x666666, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(_centerX + ox, _centerY + oy + 20, Graphics.FONT_XTINY, hrStr, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        }
+
+        // AOD_TIME_RINGS: show thin outline rings (no fill, no labels — just arcs)
+        if (settings.alwaysOnContent == AOD_TIME_RINGS) {
+            var ringY = 75 + oy;
+            var ringPositions = [_centerX + ox - 110, _centerX + ox, _centerX + ox + 110] as Array<Number>;
+            var ringRadius = 32;
+
+            for (var i = 0; i < 3; i++) {
+                var percent = _getRingPercent(settings.ringGauges[i], data);
+
+                // Thin outline track
+                dc.setColor(0x1A1A1A, Graphics.COLOR_TRANSPARENT);
+                dc.setPenWidth(1);
+                dc.drawArc(ringPositions[i], ringY, ringRadius, Graphics.ARC_CLOCKWISE, 0, 360);
+
+                // Thin progress arc (dim)
+                if (percent > 0.0) {
+                    dc.setColor(0x444444, Graphics.COLOR_TRANSPARENT);
+                    var degrees = (percent * 360).toNumber();
+                    if (degrees > 0) {
+                        dc.drawArc(ringPositions[i], ringY, ringRadius, Graphics.ARC_CLOCKWISE, 90, 90 - degrees);
+                    }
+                }
+            }
+            dc.setPenWidth(1);
+        }
     }
 
     hidden function _drawRingGauges(dc as Dc, data as DataProvider, settings as SettingsManager) as Void {
