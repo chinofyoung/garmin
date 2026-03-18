@@ -30,6 +30,30 @@ class LayoutRenderer {
         // Ring gauges and data grid added in later tasks
     }
 
+    function drawAlwaysOn(dc as Dc, data as DataProvider, settings as SettingsManager, offset as Number) as Void {
+        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
+        dc.clear();
+
+        // Shift for burn-in protection
+        var ox = offset;
+        var oy = offset;
+
+        var clockTime = System.getClockTime();
+        var timeStr;
+        if (System.getDeviceSettings().is24Hour) {
+            timeStr = clockTime.hour.format("%02d") + ":" + clockTime.min.format("%02d");
+        } else {
+            var h = clockTime.hour;
+            if (h == 0) { h = 12; }
+            else if (h > 12) { h = h - 12; }
+            timeStr = h.format("%d") + ":" + clockTime.min.format("%02d");
+        }
+
+        // Dim time only for AOD_TIME_ONLY
+        dc.setColor(0x999999, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(_centerX + ox, _centerY + oy - 30, Graphics.FONT_NUMBER_THAI_HOT, timeStr, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+    }
+
     hidden function _drawTime(dc as Dc, settings as SettingsManager) as Void {
         var clockTime = System.getClockTime();
         var hours = clockTime.hour;
