@@ -45,7 +45,7 @@ Each update tick (~once per minute in low-power, once per second in high-power),
 - Background track circle (dark gray) + foreground arc (colored, proportional to value)
 - Icon/label above the value, numeric value centered inside
 - Default colors: HR = red, Steps = green, Battery = yellow
-- Arc percentage: HR from zone range, steps from goal progress, battery from %
+- Arc percentage: HR from zone range (`UserProfile.getProfile().heartRateZones`), steps from goal progress (`ActivityMonitor.getInfo().stepGoal`), battery from %
 - Rings are configurable — user can swap which metric appears in each slot
 
 ### Time (Center Zone)
@@ -57,7 +57,7 @@ Each update tick (~once per minute in low-power, once per second in high-power),
 ### Data Grid (Bottom Zone)
 
 - Row 1: VO2 Max | Calories | Distance
-- Row 2: Weather | Recovery | Notifications
+- Row 2: Weather | Floors | Notifications
 - Each cell: small uppercase label in accent color + value below in white
 - Footer: sunrise/sunset times + week number, very small, muted
 - Each slot is configurable — user can choose which metric to show
