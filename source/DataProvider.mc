@@ -27,9 +27,7 @@ class DataProvider {
 
     // Cache control (getTimer() resets on app restart, so cache resets too — acceptable)
     var _lastWeatherUpdate as Number = 0;
-    var _lastSunUpdate as Number = 0;
     hidden var WEATHER_CACHE_MS as Number = 1800000; // 30 min
-    hidden var SUN_CACHE_MS as Number = 86400000; // 24 hours
 
     function initialize() {
     }
@@ -73,7 +71,7 @@ class DataProvider {
         var profile = UserProfile.getProfile();
         if (profile != null) {
             vo2max = profile.vo2maxRunning;
-            heartRateZones = profile.heartRateZones;
+            heartRateZones = UserProfile.getHeartRateZones(UserProfile.HR_ZONE_SPORT_GENERIC);
         }
     }
 
@@ -87,12 +85,9 @@ class DataProvider {
                 weatherCondition = conditions.condition;
                 _lastWeatherUpdate = now;
 
-                // Sunrise/sunset: refresh daily
-                if (now - _lastSunUpdate > SUN_CACHE_MS || sunrise == null) {
-                    sunrise = conditions.sunrise;
-                    sunset = conditions.sunset;
-                    _lastSunUpdate = now;
-                }
+                // Sunrise/sunset: not available in CurrentConditions on this SDK version
+                sunrise = null;
+                sunset = null;
             }
         }
     }
