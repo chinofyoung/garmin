@@ -507,7 +507,7 @@ class DataProvider {
         _refreshWeather();
     }
 
-    private function _refreshActivity() as Void {
+    hidden function _refreshActivity() as Void {
         var actInfo = Activity.getActivityInfo();
         if (actInfo != null) {
             heartRate = actInfo.currentHeartRate;
@@ -527,7 +527,7 @@ class DataProvider {
         }
     }
 
-    private function _refreshSystem() as Void {
+    hidden function _refreshSystem() as Void {
         var stats = System.getSystemStats();
         battery = stats.battery;
 
@@ -535,7 +535,7 @@ class DataProvider {
         notifications = settings.notificationCount;
     }
 
-    private function _refreshProfile() as Void {
+    hidden function _refreshProfile() as Void {
         var profile = UserProfile.getProfile();
         if (profile != null) {
             vo2max = profile.vo2maxRunning;
@@ -543,7 +543,7 @@ class DataProvider {
         }
     }
 
-    private function _refreshWeather() as Void {
+    hidden function _refreshWeather() as Void {
         var now = System.getTimer();
 
         if (now - _lastWeatherUpdate > WEATHER_CACHE_MS || weatherTemp == null) {
@@ -647,14 +647,14 @@ import Toybox.Lang;
 
 class LayoutRenderer {
     // Screen dimensions
-    private var _width as Number;
-    private var _height as Number;
-    private var _centerX as Number;
-    private var _centerY as Number;
+    hidden var _width as Number;
+    hidden var _height as Number;
+    hidden var _centerX as Number;
+    hidden var _centerY as Number;
 
     // Zone Y boundaries
-    private const TOP_ZONE_END = 130;
-    private const CENTER_ZONE_END = 230;
+    hidden var TOP_ZONE_END as Number = 130;
+    hidden var CENTER_ZONE_END as Number = 230;
 
     function initialize(width as Number, height as Number) {
         _width = width;
@@ -671,7 +671,7 @@ class LayoutRenderer {
         // Ring gauges and data grid added in later tasks
     }
 
-    private function _drawTime(dc as Dc, settings as SettingsManager) as Void {
+    hidden function _drawTime(dc as Dc, settings as SettingsManager) as Void {
         var clockTime = System.getClockTime();
         var hours = clockTime.hour;
         var minutes = clockTime.min;
@@ -732,7 +732,7 @@ import Toybox.WatchUi;
 import Toybox.Lang;
 
 class WatchFaceDelegate extends WatchUi.WatchFaceDelegate {
-    private var _settings as SettingsManager;
+    hidden var _settings as SettingsManager;
 
     function initialize(settings as SettingsManager) {
         WatchFaceDelegate.initialize();
@@ -760,11 +760,11 @@ import Toybox.Graphics;
 import Toybox.System;
 
 class WatchFaceView extends WatchUi.WatchFace {
-    private var _data as DataProvider;
-    private var _settings as SettingsManager;
-    private var _renderer as LayoutRenderer or Null = null;
-    private var _isSleeping as Boolean = false;
-    private var _burnInOffset as Number = 0;
+    hidden var _data as DataProvider;
+    hidden var _settings as SettingsManager;
+    hidden var _renderer as LayoutRenderer or Null = null;
+    hidden var _isSleeping as Boolean = false;
+    hidden var _burnInOffset as Number = 0;
 
     function initialize(data as DataProvider, settings as SettingsManager) {
         WatchFace.initialize();
@@ -823,8 +823,8 @@ import Toybox.Application;
 import Toybox.WatchUi;
 
 class WatchFaceApp extends Application.AppBase {
-    private var _settings as SettingsManager;
-    private var _data as DataProvider;
+    hidden var _settings as SettingsManager;
+    hidden var _data as DataProvider;
 
     function initialize() {
         AppBase.initialize();
@@ -898,7 +898,7 @@ git commit -m "feat: wire up app entry point, view, and delegate — time displa
 Add these methods to `source/LayoutRenderer.mc`:
 
 ```monkey-c
-private function _drawRingGauges(dc as Dc, data as DataProvider, settings as SettingsManager) as Void {
+hidden function _drawRingGauges(dc as Dc, data as DataProvider, settings as SettingsManager) as Void {
     var palette = settings.getColorPalette();
     var ringY = 75; // center Y of ring row
     var ringPositions = [_centerX - 110, _centerX, _centerX + 110] as Array<Number>;
@@ -915,7 +915,7 @@ private function _drawRingGauges(dc as Dc, data as DataProvider, settings as Set
     }
 }
 
-private function _drawSingleRing(dc as Dc, cx as Number, cy as Number, radius as Number, color as Number, percent as Float, label as String, value as String) as Void {
+hidden function _drawSingleRing(dc as Dc, cx as Number, cy as Number, radius as Number, color as Number, percent as Float, label as String, value as String) as Void {
     // Background track
     dc.setColor(0x222222, Graphics.COLOR_TRANSPARENT);
     dc.setPenWidth(4);
@@ -941,7 +941,7 @@ private function _drawSingleRing(dc as Dc, cx as Number, cy as Number, radius as
     dc.drawText(cx, cy + 8, Graphics.FONT_TINY, value, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
 }
 
-private function _getRingValue(gaugeType as Number, data as DataProvider, settings as SettingsManager) as String {
+hidden function _getRingValue(gaugeType as Number, data as DataProvider, settings as SettingsManager) as String {
     switch (gaugeType) {
         case RING_HR:
             return data.heartRate != null ? data.heartRate.toString() : "--";
@@ -964,7 +964,7 @@ private function _getRingValue(gaugeType as Number, data as DataProvider, settin
     }
 }
 
-private function _getRingPercent(gaugeType as Number, data as DataProvider) as Float {
+hidden function _getRingPercent(gaugeType as Number, data as DataProvider) as Float {
     switch (gaugeType) {
         case RING_HR:
             return data.getHrZonePercent();
@@ -997,7 +997,7 @@ private function _getRingPercent(gaugeType as Number, data as DataProvider) as F
     }
 }
 
-private function _getRingLabel(gaugeType as Number) as String {
+hidden function _getRingLabel(gaugeType as Number) as String {
     switch (gaugeType) {
         case RING_HR: return "HR";
         case RING_STEPS: return "STEPS";
@@ -1049,7 +1049,7 @@ git commit -m "feat: add ring gauge rendering in top zone"
 Add to `source/LayoutRenderer.mc`:
 
 ```monkey-c
-private function _drawDataGrid(dc as Dc, data as DataProvider, settings as SettingsManager) as Void {
+hidden function _drawDataGrid(dc as Dc, data as DataProvider, settings as SettingsManager) as Void {
     var palette = settings.getColorPalette();
     var labelColor = palette[3];
     var startY = CENTER_ZONE_END + 15;
@@ -1084,7 +1084,7 @@ private function _drawDataGrid(dc as Dc, data as DataProvider, settings as Setti
     _drawFooter(dc, data);
 }
 
-private function _getFieldLabel(fieldType as Number) as String {
+hidden function _getFieldLabel(fieldType as Number) as String {
     switch (fieldType) {
         case FIELD_VO2MAX: return "VO2 MAX";
         case FIELD_CALORIES: return "CALORIES";
@@ -1099,7 +1099,7 @@ private function _getFieldLabel(fieldType as Number) as String {
     }
 }
 
-private function _getFieldValue(fieldType as Number, data as DataProvider, settings as SettingsManager) as String {
+hidden function _getFieldValue(fieldType as Number, data as DataProvider, settings as SettingsManager) as String {
     switch (fieldType) {
         case FIELD_VO2MAX:
             return data.vo2max != null ? data.vo2max.toString() : "--";
@@ -1124,7 +1124,7 @@ private function _getFieldValue(fieldType as Number, data as DataProvider, setti
     }
 }
 
-private function _getFieldColor(fieldType as Number, settings as SettingsManager) as Number {
+hidden function _getFieldColor(fieldType as Number, settings as SettingsManager) as Number {
     // Use palette label color for most fields, with ring colors for matching metrics
     var palette = settings.getColorPalette();
     switch (fieldType) {
@@ -1142,18 +1142,23 @@ private function _getFieldColor(fieldType as Number, settings as SettingsManager
 }
 
 // Approximate week number from month/day (no day_of_year in Gregorian.Info)
-private function _calcWeekNumber() as Number {
+hidden function _calcWeekNumber() as Number {
     var info = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
-    var daysInMonth = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31] as Array<Number>;
-    var dayOfYear = info.day as Number;
+    var year = info.year as Number;
     var month = info.month as Number;
+    var febDays = 28;
+    if (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)) {
+        febDays = 29;
+    }
+    var daysInMonth = [0, 31, febDays, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31] as Array<Number>;
+    var dayOfYear = info.day as Number;
     for (var m = 1; m < month; m++) {
         dayOfYear += daysInMonth[m];
     }
     return (dayOfYear / 7) + 1;
 }
 
-private function _drawFooter(dc as Dc, data as DataProvider) as Void {
+hidden function _drawFooter(dc as Dc, data as DataProvider) as Void {
     var footerY = _height - 30;
     var footerStr = "";
 
