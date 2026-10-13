@@ -26,7 +26,8 @@ class DataProvider {
     var heartRateZones as Array<Number> or Null = null;
 
     // Cache control (getTimer() resets on app restart, so cache resets too — acceptable)
-    var _lastWeatherUpdate as Number = 0;
+    hidden var _lastWeatherUpdate as Number = -1800000;
+    hidden var _sunDayKey as Number = -1; // month * 100 + day of last sun fetch
     hidden var WEATHER_CACHE_MS as Number = 1800000; // 30 min
 
     function initialize() {
@@ -78,16 +79,30 @@ class DataProvider {
     hidden function _refreshWeather() as Void {
         var now = System.getTimer();
 
-        if (now - _lastWeatherUpdate > WEATHER_CACHE_MS || weatherTemp == null) {
+        if (now - _lastWeatherUpdate > WEATHER_CACHE_MS) {
+            _lastWeatherUpdate = now;
             var conditions = Weather.getCurrentConditions();
             if (conditions != null) {
                 weatherTemp = conditions.temperature;
                 weatherCondition = conditions.condition;
-                _lastWeatherUpdate = now;
 
-                // Sunrise/sunset: not available in CurrentConditions on this SDK version
-                sunrise = null;
-                sunset = null;
+                // Sunrise/sunset: re-query once per day, or if still unknown
+                var nowMoment = Time.now();
+                var d = Gregorian.info(nowMoment, Time.FORMAT_SHORT);
+                var dayKey = d.month * 100 + d.day;
+                if (dayKey != _sunDayKey || sunrise == null || sunset == null) {
+                    var loc = conditions.observationLocationPosition;
+                    if (loc != null) {
+                        sunrise = Weather.getSunrise(loc, nowMoment);
+                        sunset = Weather.getSunset(loc, nowMoment);
+                        if (sunrise != null && sunset != null) {
+                            _sunDayKey = dayKey;
+                        }
+                    } else {
+                        sunrise = null;
+                        sunset = null;
+                    }
+                }
             }
         }
     }
@@ -108,9 +123,10 @@ class DataProvider {
     function getTempFormatted(useCelsius as Boolean) as String {
         if (weatherTemp == null) { return "--"; }
         if (useCelsius) {
-            return weatherTemp.toString() + "°";
+            return weatherTemp.toNumber().toString() + "°";
         } else {
-            return ((weatherTemp * 9 / 5) + 32).toString() + "°";
+            var f = (weatherTemp as Number).toFloat() * 1.8 + 32.0;
+            return (f + (f < 0 ? -0.5 : 0.5)).toNumber().toString() + "°";
         }
     }
 

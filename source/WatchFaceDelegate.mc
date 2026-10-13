@@ -1,3 +1,4 @@
+import Toybox.Application;
 import Toybox.WatchUi;
 import Toybox.Lang;
 
@@ -16,6 +17,12 @@ class WatchFaceDelegate extends WatchUi.WatchFaceDelegate {
             _settings.dataFields[i] = _settings.dataFields[i - 1];
         }
         _settings.dataFields[0] = temp;
+        try {
+            for (var j = 0; j < 6; j++) {
+                Application.Properties.setValue("DataField" + (j + 1), _settings.dataFields[j]);
+            }
+        } catch (e instanceof Lang.Exception) {
+        }
         WatchUi.requestUpdate();
         return true;
     }

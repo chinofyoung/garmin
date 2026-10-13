@@ -9,6 +9,7 @@ class WatchFaceView extends WatchUi.WatchFace {
     hidden var _renderer as LayoutRenderer or Null = null;
     hidden var _isSleeping as Boolean = false;
     hidden var _burnInOffset as Number = 0;
+    hidden var _burnInStep as Number = 0;
 
     function initialize(data as DataProvider, settings as SettingsManager) {
         WatchFace.initialize();
@@ -29,7 +30,8 @@ class WatchFaceView extends WatchUi.WatchFace {
 
         if (_isSleeping) {
             if (System.getDeviceSettings().requiresBurnInProtection) {
-                _burnInOffset = (_burnInOffset + 1) % 10 - 5;
+                _burnInStep = (_burnInStep + 1) % 11;
+                _burnInOffset = _burnInStep - 5;
             }
             (_renderer as LayoutRenderer).drawAlwaysOn(dc, _data, _settings, _burnInOffset);
         } else {
@@ -39,6 +41,7 @@ class WatchFaceView extends WatchUi.WatchFace {
 
     function onEnterSleep() as Void {
         _isSleeping = true;
+        _burnInStep = 0;
         _burnInOffset = 0;
         WatchUi.requestUpdate();
     }
