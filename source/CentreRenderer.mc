@@ -13,7 +13,9 @@ class CentreRenderer {
     hidden var _minFont as FontResource or Null = null;
     hidden var _textFont as VectorFont or Null = null;
     hidden var _loaded as Boolean = false;
+    hidden var _s as Float = 1.0;        // screen scale: width / 454 (design size)
 
+    // Pixel values below are the 454 px design; initialize() scales them by _s.
     // Locked requirement: hour digit cap height in px. The hour never shrinks.
     var HOUR_CAP_PX as Number = 150;
     var iconY as Number = 80;
@@ -25,8 +27,9 @@ class CentreRenderer {
     var hourInkPx as Number = 149;     // tallest hour digit ink height (round glyphs overshoot the 147 ascent)
     var minInkPx as Number = 40;       // tallest minute digit ink height
     var minuteRingClear as Number = 6; // min px between the minutes' bottom-right ink and the ring
-    // Right side bearing (ink right - advance right) per digit 0-9, from the
-    // generated .fnt files (xoffset + width - xadvance). Regenerate if the fonts change.
+    // Right side bearing (ink right - advance right) per digit 0-9. Defaults are the
+    // 454 px values; _load() replaces them (and the ink heights) from Rez.Strings.FontMetrics,
+    // generated per resolution by tools/gen_fonts.py.
     hidden var _hourRsb as Array<Number> = [-6, -13, -6, -7, -7, -6, -5, -6, -7, -9] as Array<Number>;
     hidden var _minRsb as Array<Number> = [-1, -3, -1, -1, -1, -1, -1, -2, -1, -2] as Array<Number>;
 
@@ -34,12 +37,47 @@ class CentreRenderer {
         _cx = width / 2;
         _cy = height / 2;
         _textFont = textFont;
+        _s = width / 454.0;
+        HOUR_CAP_PX = _px(HOUR_CAP_PX);
+        iconY = _px(iconY);
+        hourCentreY = _px(hourCentreY);
+        minuteTopGap = _px(minuteTopGap);
+        greet1Y = _px(greet1Y);
+        greet2Y = _px(greet2Y);
+        innerRadius = _px(innerRadius);
+        minuteRingClear = _px(minuteRingClear);
+    }
+
+    hidden function _px(v as Number) as Number {
+        return Math.round(v * _s).toNumber();
+    }
+
+    // Parses "hourInk,minInk,h0..h9,m0..m9"; leaves the 454 defaults on any problem.
+    hidden function _loadMetrics() as Void {
+        var raw = WatchUi.loadResource(Rez.Strings.FontMetrics);
+        if (!(raw instanceof String)) { return; }
+        var rest = raw as String;
+        var vals = [] as Array<Number>;
+        while (rest.length() > 0) {
+            var comma = rest.find(",");
+            var token = (comma == null) ? rest : rest.substring(0, comma);
+            var n = token.toNumber();
+            if (n == null) { return; }
+            vals.add(n);
+            rest = (comma == null) ? "" : rest.substring(comma + 1, rest.length());
+        }
+        if (vals.size() != 22) { return; }
+        hourInkPx = vals[0];
+        minInkPx = vals[1];
+        _hourRsb = vals.slice(2, 12) as Array<Number>;
+        _minRsb = vals.slice(12, 22) as Array<Number>;
     }
 
     hidden function _load() as Void {
         _loaded = true;
         _hourFont = WatchUi.loadResource(Rez.Fonts.HourFont) as FontResource;
         _minFont = WatchUi.loadResource(Rez.Fonts.MinuteFont) as FontResource;
+        _loadMetrics();
     }
 
     function draw(dc as Dc, hourStr as String, minStr as String,
@@ -53,16 +91,16 @@ class CentreRenderer {
         if (iconMode == ICON_DAYNIGHT) {
             if (isNight) { _drawMoon(dc, _cx, iconY); } else { _drawSun(dc, _cx, iconY); }
         } else if (iconMode >= ICON_GRAPH_HR && iconMode <= ICON_GRAPH_TEMP) {
-            graphs.drawSparkline(dc, GRAPH_HR + (iconMode - ICON_GRAPH_HR), 0, _cx, iconY, 120, 26);
+            graphs.drawSparkline(dc, GRAPH_HR + (iconMode - ICON_GRAPH_HR), 0, _cx, iconY, _px(120), _px(26));
         } else if (iconMode == ICON_STEPS_BAR) {
-            graphs.drawStepsBar(dc, _cx, iconY, 120, stepsPct);
+            graphs.drawStepsBar(dc, _cx, iconY, _px(120), stepsPct);
         }
 
         _drawDigits(dc, hourStr, minStr, 0xE6E6E6, 0);
 
         // Greeting slot
         if (greetMode >= GRAPH_HR && greetMode <= GRAPH_TEMP) {
-            graphs.drawSparkline(dc, greetMode, 1, _cx, (greet1Y + greet2Y) / 2, 160, 40);
+            graphs.drawSparkline(dc, greetMode, 1, _cx, (greet1Y + greet2Y) / 2, _px(160), _px(40));
         } else if (greetMode != METRIC_NONE && _textFont != null) {
             var vcj = Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER;
             dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
@@ -120,28 +158,32 @@ class CentreRenderer {
 
     hidden function _drawMoon(dc as Dc, x as Number, y as Number) as Void {
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-        dc.fillCircle(x, y, 13);
+        dc.fillCircle(x, y, _px(13));
         // Cut-out uses the background colour under the icon (grey region or black).
-        dc.setColor(_bgAt(x + 6, y - 3), Graphics.COLOR_TRANSPARENT);
-        dc.fillCircle(x + 6, y - 3, 11);
+        var ox = x + _px(6);
+        var oy = y - _px(3);
+        dc.setColor(_bgAt(ox, oy), Graphics.COLOR_TRANSPARENT);
+        dc.fillCircle(ox, oy, _px(11));
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
     }
 
     hidden function _drawSun(dc as Dc, x as Number, y as Number) as Void {
-        dc.fillCircle(x, y, 9);
-        dc.setPenWidth(2);
+        dc.fillCircle(x, y, _px(9));
+        var inner = _px(11);
+        var outer = _px(16);
+        dc.setPenWidth(_px(2) < 1 ? 1 : _px(2));
         for (var i = 0; i < 8; i++) {
             var a = i * Math.PI / 4.0;
             var c = Math.cos(a);
             var s = Math.sin(a);
-            dc.drawLine(x + (c * 11).toNumber(), y + (s * 11).toNumber(),
-                        x + (c * 16).toNumber(), y + (s * 16).toNumber());
+            dc.drawLine(x + (c * inner).toNumber(), y + (s * inner).toNumber(),
+                        x + (c * outer).toNumber(), y + (s * outer).toNumber());
         }
         dc.setPenWidth(1);
     }
 
-    // Matches BezelRenderer's background: grey above the diagonal x + y = 340.
+    // Matches BezelRenderer's background: grey above the diagonal x + y = 340 * scale.
     hidden function _bgAt(x as Number, y as Number) as Number {
-        return (x + y < 340) ? 0x1E1E22 : 0x000000;
+        return (x + y < _px(340)) ? 0x1E1E22 : 0x000000;
     }
 }

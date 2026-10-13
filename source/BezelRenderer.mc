@@ -9,11 +9,16 @@ class BezelRenderer {
     hidden var _cy as Number;
     hidden var _fonts as Array<VectorFont or Null> = [null, null, null] as Array<VectorFont or Null>;
     hidden var _fontsLoaded as Boolean = false;
+    hidden var _s as Float = 1.0;        // screen scale: width / 454 (design size)
 
+    // All geometry below is designed at 454 px and scaled by _s in initialize().
     var innerRadius as Number = 185;
     // Radial centre of the glyph band; halfway between the seconds track (185)
     // and the screen edge (227), so both gaps are equal.
     var bandMid as Float = 206.0;
+    hidden var _diag as Number = 340;    // grey region diagonal leg
+    hidden var _thinPen as Number = 2;
+    hidden var _thickPen as Number = 3;
     hidden var _sizes as Array<Number> = [22, 18, 16] as Array<Number>;
     hidden var _angles as Array<Number> = [135, 90, 45, 225, 270, 315] as Array<Number>;
     hidden var _slotArc as Number = 0;   // px per slot at bandMid: 45 deg spacing minus a 4 deg gap each side
@@ -21,7 +26,24 @@ class BezelRenderer {
     function initialize(width as Number, height as Number) {
         _cx = width / 2;
         _cy = height / 2;
+        _s = width / 454.0;
+        innerRadius = _px(185);
+        bandMid = 206.0 * _s;
+        _diag = _px(340);
+        _thinPen = _atLeast1(_px(2));
+        _thickPen = _atLeast1(_px(3));
+        for (var i = 0; i < _sizes.size(); i++) {
+            _sizes[i] = _px(_sizes[i]);
+        }
         _slotArc = (bandMid * Math.PI * 37.0 / 180.0).toNumber();
+    }
+
+    hidden function _px(v as Number) as Number {
+        return Math.round(v * _s).toNumber();
+    }
+
+    hidden function _atLeast1(v as Number) as Number {
+        return (v < 1) ? 1 : v;
     }
 
     hidden function _loadFonts() as Void {
@@ -45,15 +67,15 @@ class BezelRenderer {
 
         // Grey upper-left region bounded by the diagonal (0,340)-(340,0).
         dc.setColor(0x1E1E22, 0x1E1E22);
-        dc.fillPolygon([[0, 0], [340, 0], [0, 340]]);
+        dc.fillPolygon([[0, 0], [_diag, 0], [0, _diag]]);
 
         // Seconds indicator: track plus clockwise arc from 12 o'clock.
-        dc.setPenWidth(2);
+        dc.setPenWidth(_thinPen);
         dc.setColor(0x3A3A3E, Graphics.COLOR_TRANSPARENT);
         dc.drawCircle(_cx, _cy, innerRadius);
         if (sec > 0) {
             dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-            dc.setPenWidth(3);
+            dc.setPenWidth(_thickPen);
             dc.drawArc(_cx, _cy, innerRadius, Graphics.ARC_CLOCKWISE, 90, 90 - sec * 6);
         }
         dc.setPenWidth(1);
@@ -77,7 +99,7 @@ class BezelRenderer {
         // half the cap height (~0.72 em for Roboto) so the band centres on
         // bandMid; the small constants are measured simulator corrections.
         var capHalf = _sizes[idx] * 0.36;
-        var r = clockwise ? bandMid - capHalf + 1.4 : bandMid + capHalf - 2.0;
+        var r = clockwise ? bandMid - capHalf + 1.4 * _s : bandMid + capHalf - 2.0 * _s;
         dc.drawRadialText(_cx, _cy, font, text, Graphics.TEXT_JUSTIFY_CENTER, angle,
                           Math.round(r).toNumber(),
                           clockwise ? Graphics.RADIAL_TEXT_DIRECTION_CLOCKWISE

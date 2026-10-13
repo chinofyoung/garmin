@@ -1,5 +1,6 @@
 import Toybox.Graphics;
 import Toybox.Lang;
+import Toybox.Math;
 import Toybox.System;
 import Toybox.Time;
 import Toybox.SensorHistory;
@@ -7,13 +8,15 @@ import Toybox.SensorHistory;
 class GraphRenderer {
     hidden var MAX_SAMPLES as Number = 60;
     hidden var CACHE_MS as Number = 60000;
+    hidden var _s as Float = 1.0;        // screen scale: width / 454 (design size)
     hidden var _samples0 as Array<Float or Null>;
     hidden var _samples1 as Array<Float or Null>;
     hidden var _count as Array<Number> = [0, 0] as Array<Number>;
     hidden var _cachedKind as Array<Number> = [-1, -1] as Array<Number>;
     hidden var _lastFetch as Array<Number> = [-60000, -60000] as Array<Number>;
 
-    function initialize() {
+    function initialize(width as Number) {
+        _s = width / 454.0;
         _samples0 = new Array<Float or Null>[MAX_SAMPLES];
         _samples1 = new Array<Float or Null>[MAX_SAMPLES];
     }
@@ -39,7 +42,8 @@ class GraphRenderer {
         if (valid < 2) {
             dc.setColor(0x3A3A3E, Graphics.COLOR_TRANSPARENT);
             dc.setPenWidth(1);
-            dc.drawLine(cx - 12, cy, cx + 12, cy);
+            var half = _px(12);
+            dc.drawLine(cx - half, cy, cx + half, cy);
             return;
         }
 
@@ -71,14 +75,20 @@ class GraphRenderer {
 
     function drawStepsBar(dc as Dc, cx as Number, cy as Number, w as Number, percent as Float) as Void {
         var left = cx - w / 2;
+        var barH = _px(6);
+        var top = cy - barH / 2;
         dc.setColor(0x3A3A3E, 0x3A3A3E);
-        dc.fillRectangle(left, cy - 3, w, 6);
+        dc.fillRectangle(left, top, w, barH);
         var fill = (w * percent).toNumber();
         if (fill > w) { fill = w; }
         if (fill > 0) {
             dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_WHITE);
-            dc.fillRectangle(left, cy - 3, fill, 6);
+            dc.fillRectangle(left, top, fill, barH);
         }
+    }
+
+    hidden function _px(v as Number) as Number {
+        return Math.round(v * _s).toNumber();
     }
 
     hidden function _ensureSamples(kind as Number, slot as Number) as Void {

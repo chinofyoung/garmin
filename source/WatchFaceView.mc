@@ -18,7 +18,7 @@ class WatchFaceView extends WatchUi.WatchFace {
         WatchFace.initialize();
         _data = data;
         _settings = settings;
-        _graphs = new GraphRenderer();
+        _graphs = new GraphRenderer(System.getDeviceSettings().screenWidth);
     }
 
     function onLayout(dc as Dc) as Void {

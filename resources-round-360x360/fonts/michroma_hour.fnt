@@ -1,0 +1,15 @@
+info face="Michroma" size=141 bold=0 italic=0 charset="" unicode=1 stretchH=100 smooth=1 aa=1 padding=0,0,0,0 spacing=1,1 outline=0
+common lineHeight=119 base=116 scaleW=995 scaleH=123 pages=1 packed=0 alphaChnl=1 redChnl=0 greenChnl=0 blueChnl=0
+page id=0 file="michroma_hour.png"
+chars count=10
+char id=48 x=2 y=2 width=99 height=118 xoffset=6 yoffset=0 xadvance=111 page=0 chnl=15
+char id=49 x=103 y=2 width=82 height=114 xoffset=18 yoffset=2 xadvance=111 page=0 chnl=15
+char id=50 x=187 y=2 width=98 height=116 xoffset=8 yoffset=0 xadvance=111 page=0 chnl=15
+char id=51 x=287 y=2 width=98 height=119 xoffset=7 yoffset=0 xadvance=111 page=0 chnl=15
+char id=52 x=387 y=2 width=105 height=114 xoffset=6 yoffset=2 xadvance=116 page=0 chnl=15
+char id=53 x=494 y=2 width=96 height=116 xoffset=9 yoffset=2 xadvance=111 page=0 chnl=15
+char id=54 x=592 y=2 width=98 height=119 xoffset=8 yoffset=0 xadvance=111 page=0 chnl=15
+char id=55 x=692 y=2 width=101 height=114 xoffset=6 yoffset=2 xadvance=113 page=0 chnl=15
+char id=56 x=795 y=2 width=98 height=119 xoffset=7 yoffset=0 xadvance=111 page=0 chnl=15
+char id=57 x=895 y=2 width=98 height=118 xoffset=7 yoffset=0 xadvance=113 page=0 chnl=15
+kernings count=0
