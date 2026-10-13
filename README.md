@@ -24,6 +24,8 @@ For each round width W in 454, 416, 390, 360 (scale s = W/454) it renders the ho
 - `strings/metrics.xml` with `FontMetrics` = `hourInk,minInk,h0..h9,m0..m9` (tallest digit ink heights, then right side bearings `xoffset+width-xadvance` per digit for the hour and minute fonts)
 The base `resources/fonts/` holds only `OFL-Michroma.txt`; every qualifier folder is self-contained for fonts. The script is idempotent; re-run it after changing any font parameter.
 
+Regenerate the 54/60/70 px launcher icon variants (`resources-icon54/60/70`, wired per device in `monkey.jungle`) from the 65 px base icon with `python3 tools/gen_icons.py` (needs Pillow).
+
 ## Settings (Garmin Connect app)
 Your name; six bezel slots; icon slot; greeting slot. See `docs/superpowers/specs/2026-10-13-minimal-bezel-watchface-design.md`.
 
