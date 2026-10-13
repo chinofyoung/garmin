@@ -1,0 +1,4 @@
+<fonts>
+    <font id="HourFont" filename="michroma_hour.fnt" filter="0123456789" antialias="true"/>
+    <font id="MinuteFont" filename="michroma_min.fnt" filter="0123456789" antialias="true"/>
+</fonts>
