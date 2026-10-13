@@ -2,30 +2,23 @@ import Toybox.WatchUi;
 import Toybox.Graphics;
 import Toybox.Lang;
 import Toybox.System;
-import Toybox.Time;
-import Toybox.Time.Gregorian;
 
 class WatchFaceView extends WatchUi.WatchFace {
     hidden var _data as DataProvider;
     hidden var _settings as SettingsManager;
     hidden var _bezel as BezelRenderer or Null = null;
     hidden var _centre as CentreRenderer or Null = null;
+    hidden var _graphs as GraphRenderer;
     hidden var _isSleeping as Boolean = false;
     hidden var _burnInOffset as Number = 0;
     hidden var _burnInStep as Number = 0;
-
-    // PREVIEW placeholders; replaced by DataProvider/SettingsManager values later.
-    hidden var _phBattery as String = "BATTERY 72%";
-    hidden var _phSteps as String = "8412 / 10000";
-    hidden var _phLat as String = "14.5995° N";
-    hidden var _phLon as String = "120.9842° E";
-    hidden var _phHr as String = "64 BPM";
-    hidden var _phName as String = "CHINO";
+    hidden var _texts as Array<String> = ["", "", "", "", "", ""] as Array<String>;
 
     function initialize(data as DataProvider, settings as SettingsManager) {
         WatchFace.initialize();
         _data = data;
         _settings = settings;
+        _graphs = new GraphRenderer();
     }
 
     function onLayout(dc as Dc) as Void {
@@ -35,19 +28,10 @@ class WatchFaceView extends WatchUi.WatchFace {
     }
 
     function onUpdate(dc as Dc) as Void {
-        if (_bezel == null || _centre == null) {
-            return;
-        }
-        var clock = System.getClockTime();
-        var hour = clock.hour;
-        var hourStr;
-        if (System.getDeviceSettings().is24Hour) {
-            hourStr = hour.format("%02d");
-        } else {
-            var h12 = hour % 12;
-            hourStr = (h12 == 0 ? 12 : h12).toString();
-        }
-        var minStr = clock.min.format("%02d");
+        if (_bezel == null || _centre == null) { return; }
+        _data.refresh(!_isSleeping);
+        var hourStr = _data.hourString();
+        var minStr = _data.minuteString();
 
         if (_isSleeping) {
             if (System.getDeviceSettings().requiresBurnInProtection) {
@@ -58,30 +42,24 @@ class WatchFaceView extends WatchUi.WatchFace {
             return;
         }
 
-        var now = Time.now();
-        var info = Gregorian.info(now, Time.FORMAT_SHORT);
-        var infoMed = Gregorian.info(now, Time.FORMAT_MEDIUM);
-        var days = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"];
-        var dateStr = days[(info.day_of_week as Number) - 1] + ", " + info.day + " "
-            + (infoMed.month as String).toUpper();
-
-        var greeting;
-        if (hour >= 5 && hour < 12) {
-            greeting = "GOOD MORNING";
-        } else if (hour >= 12 && hour < 18) {
-            greeting = "GOOD AFTERNOON";
-        } else if (hour >= 18 && hour < 22) {
-            greeting = "GOOD EVENING";
-        } else {
-            greeting = "GOOD NIGHT";
+        for (var i = 0; i < 6; i++) {
+            _texts[i] = _data.metricText(_settings.slots[i]);
         }
-        var line2 = _phName;
-        var line1 = line2.length() > 0 ? greeting + "," : greeting;
-        var isNight = hour >= 18 || hour < 6;
+        (_bezel as BezelRenderer).draw(dc, _texts, _data.second());
 
-        (_bezel as BezelRenderer).draw(dc,
-            [dateStr, _phSteps, _phBattery, _phLat, _phHr, _phLon] as Array<String>, clock.sec);
-        (_centre as CentreRenderer).draw(dc, hourStr, minStr, isNight, line1, line2);
+        var greetMode = _settings.greetingSlot;
+        var line1 = "";
+        var line2 = "";
+        if (greetMode == METRIC_GREETING) {
+            line1 = _data.greetingLine1(_settings.userName);
+            line2 = _settings.userName;
+        } else if (greetMode >= 0 && greetMode < METRIC_NONE) {
+            line1 = _data.metricText(greetMode);
+        }
+
+        (_centre as CentreRenderer).draw(dc, hourStr, minStr,
+            _settings.iconSlot, greetMode, _data.isNight(),
+            _data.stepsPercent(), line1, line2, _graphs);
     }
 
     function onEnterSleep() as Void {

@@ -2,8 +2,9 @@
 """Render a TTF into a BMFont (text .fnt + greyscale .png atlas) for Connect IQ.
 
 Usage:
-  python tools/make_font.py --ttf tools/fonts/Michroma-Regular.ttf --size 130 \
-      --chars 0123456789 --embolden 0.05 --out resources/fonts/michroma_hour
+  python tools/make_font.py --ttf tools/fonts/Michroma-Regular.ttf --size 150 \
+      --chars 0123456789 --embolden 0.05 --xscale 0.78 --tracking 0 \
+      --out resources/fonts/michroma_hour
 
 --size is the target ink height in pixels of the digit "0" (Michroma digits
 sit at cap height). The atlas is 8-bit greyscale, white glyph coverage on
@@ -45,7 +46,10 @@ def main():
     ap.add_argument("--size", type=int, required=True)
     ap.add_argument("--chars", default="0123456789")
     ap.add_argument("--out", required=True, help="output path without extension")
-    ap.add_argument("--tracking", type=float, default=0.04)
+    ap.add_argument("--tracking", type=int, default=None,
+                    help="extra px added to each advance (default: 4%% of --size)")
+    ap.add_argument("--xscale", type=float, default=1.0,
+                    help="horizontal scale applied to glyph outlines and advances")
     ap.add_argument("--embolden", type=float, default=0.0,
                     help="extra stroke weight as a fraction of pixel size (e.g. 0.05)")
     a = ap.parse_args()
@@ -53,6 +57,9 @@ def main():
     EMBOLDEN = a.embolden
 
     face = freetype.Face(a.ttf)
+    if a.xscale != 1.0:
+        m = freetype.Matrix(int(round(a.xscale * 0x10000)), 0, 0, 0x10000)
+        face.set_transform(m, freetype.Vector(0, 0))
     # Find the pixel size at which "0" is exactly --size tall.
     best = None
     for cand in range(a.size, a.size * 2):
@@ -66,7 +73,7 @@ def main():
     face.set_pixel_sizes(0, px)
 
     glyphs = {c: render(face, c) for c in a.chars}
-    track = max(1, round(a.size * a.tracking))
+    track = a.tracking if a.tracking is not None else max(1, round(a.size * 0.04))
     pad = 2
     asc = max(top for _, _, top, _ in glyphs.values())
     desc = max(img.height - top for img, _, top, _ in glyphs.values())

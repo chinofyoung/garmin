@@ -1,149 +1,151 @@
 <settings>
-    <setting propertyKey="@Properties.ColorScheme" title="@Strings.ColorSchemeTitle">
+    <setting propertyKey="@Properties.UserName" title="@Strings.UserNameTitle">
+        <settingConfig type="alphaNumeric" maxLength="14"/>
+    </setting>
+    <setting propertyKey="@Properties.Slot1" title="@Strings.Slot1Title">
         <settingConfig type="list">
-            <listEntry value="0">@Strings.RedGreen</listEntry>
-            <listEntry value="1">@Strings.BluePurple</listEntry>
-            <listEntry value="2">@Strings.OrangeCyan</listEntry>
-            <listEntry value="3">@Strings.Monochrome</listEntry>
+            <listEntry value="0">@Strings.MDate</listEntry>
+            <listEntry value="1">@Strings.MBattery</listEntry>
+            <listEntry value="2">@Strings.MSteps</listEntry>
+            <listEntry value="3">@Strings.MHeartRate</listEntry>
+            <listEntry value="4">@Strings.MCalories</listEntry>
+            <listEntry value="5">@Strings.MDistance</listEntry>
+            <listEntry value="6">@Strings.MLatitude</listEntry>
+            <listEntry value="7">@Strings.MLongitude</listEntry>
+            <listEntry value="8">@Strings.MSun</listEntry>
+            <listEntry value="9">@Strings.MFloors</listEntry>
+            <listEntry value="10">@Strings.MActiveMin</listEntry>
+            <listEntry value="11">@Strings.MNotifs</listEntry>
+            <listEntry value="12">@Strings.MTemp</listEntry>
+            <listEntry value="13">@Strings.MNone</listEntry>
         </settingConfig>
     </setting>
-    <setting propertyKey="@Properties.DataField1" title="@Strings.DataField1Title">
+    <setting propertyKey="@Properties.Slot2" title="@Strings.Slot2Title">
         <settingConfig type="list">
-            <listEntry value="0">@Strings.VO2Max</listEntry>
-            <listEntry value="1">@Strings.Calories</listEntry>
-            <listEntry value="2">@Strings.Distance</listEntry>
-            <listEntry value="3">@Strings.Weather</listEntry>
-            <listEntry value="4">@Strings.Notifications</listEntry>
-            <listEntry value="5">@Strings.Floors</listEntry>
-            <listEntry value="6">@Strings.ActiveMinutes</listEntry>
-            <listEntry value="7">@Strings.Seconds</listEntry>
-            <listEntry value="8">@Strings.WeekNumber</listEntry>
-            <listEntry value="9">@Strings.None</listEntry>
+            <listEntry value="0">@Strings.MDate</listEntry>
+            <listEntry value="1">@Strings.MBattery</listEntry>
+            <listEntry value="2">@Strings.MSteps</listEntry>
+            <listEntry value="3">@Strings.MHeartRate</listEntry>
+            <listEntry value="4">@Strings.MCalories</listEntry>
+            <listEntry value="5">@Strings.MDistance</listEntry>
+            <listEntry value="6">@Strings.MLatitude</listEntry>
+            <listEntry value="7">@Strings.MLongitude</listEntry>
+            <listEntry value="8">@Strings.MSun</listEntry>
+            <listEntry value="9">@Strings.MFloors</listEntry>
+            <listEntry value="10">@Strings.MActiveMin</listEntry>
+            <listEntry value="11">@Strings.MNotifs</listEntry>
+            <listEntry value="12">@Strings.MTemp</listEntry>
+            <listEntry value="13">@Strings.MNone</listEntry>
         </settingConfig>
     </setting>
-    <setting propertyKey="@Properties.DataField2" title="@Strings.DataField2Title">
+    <setting propertyKey="@Properties.Slot3" title="@Strings.Slot3Title">
         <settingConfig type="list">
-            <listEntry value="0">@Strings.VO2Max</listEntry>
-            <listEntry value="1">@Strings.Calories</listEntry>
-            <listEntry value="2">@Strings.Distance</listEntry>
-            <listEntry value="3">@Strings.Weather</listEntry>
-            <listEntry value="4">@Strings.Notifications</listEntry>
-            <listEntry value="5">@Strings.Floors</listEntry>
-            <listEntry value="6">@Strings.ActiveMinutes</listEntry>
-            <listEntry value="7">@Strings.Seconds</listEntry>
-            <listEntry value="8">@Strings.WeekNumber</listEntry>
-            <listEntry value="9">@Strings.None</listEntry>
+            <listEntry value="0">@Strings.MDate</listEntry>
+            <listEntry value="1">@Strings.MBattery</listEntry>
+            <listEntry value="2">@Strings.MSteps</listEntry>
+            <listEntry value="3">@Strings.MHeartRate</listEntry>
+            <listEntry value="4">@Strings.MCalories</listEntry>
+            <listEntry value="5">@Strings.MDistance</listEntry>
+            <listEntry value="6">@Strings.MLatitude</listEntry>
+            <listEntry value="7">@Strings.MLongitude</listEntry>
+            <listEntry value="8">@Strings.MSun</listEntry>
+            <listEntry value="9">@Strings.MFloors</listEntry>
+            <listEntry value="10">@Strings.MActiveMin</listEntry>
+            <listEntry value="11">@Strings.MNotifs</listEntry>
+            <listEntry value="12">@Strings.MTemp</listEntry>
+            <listEntry value="13">@Strings.MNone</listEntry>
         </settingConfig>
     </setting>
-    <setting propertyKey="@Properties.DataField3" title="@Strings.DataField3Title">
+    <setting propertyKey="@Properties.Slot4" title="@Strings.Slot4Title">
         <settingConfig type="list">
-            <listEntry value="0">@Strings.VO2Max</listEntry>
-            <listEntry value="1">@Strings.Calories</listEntry>
-            <listEntry value="2">@Strings.Distance</listEntry>
-            <listEntry value="3">@Strings.Weather</listEntry>
-            <listEntry value="4">@Strings.Notifications</listEntry>
-            <listEntry value="5">@Strings.Floors</listEntry>
-            <listEntry value="6">@Strings.ActiveMinutes</listEntry>
-            <listEntry value="7">@Strings.Seconds</listEntry>
-            <listEntry value="8">@Strings.WeekNumber</listEntry>
-            <listEntry value="9">@Strings.None</listEntry>
+            <listEntry value="0">@Strings.MDate</listEntry>
+            <listEntry value="1">@Strings.MBattery</listEntry>
+            <listEntry value="2">@Strings.MSteps</listEntry>
+            <listEntry value="3">@Strings.MHeartRate</listEntry>
+            <listEntry value="4">@Strings.MCalories</listEntry>
+            <listEntry value="5">@Strings.MDistance</listEntry>
+            <listEntry value="6">@Strings.MLatitude</listEntry>
+            <listEntry value="7">@Strings.MLongitude</listEntry>
+            <listEntry value="8">@Strings.MSun</listEntry>
+            <listEntry value="9">@Strings.MFloors</listEntry>
+            <listEntry value="10">@Strings.MActiveMin</listEntry>
+            <listEntry value="11">@Strings.MNotifs</listEntry>
+            <listEntry value="12">@Strings.MTemp</listEntry>
+            <listEntry value="13">@Strings.MNone</listEntry>
         </settingConfig>
     </setting>
-    <setting propertyKey="@Properties.DataField4" title="@Strings.DataField4Title">
+    <setting propertyKey="@Properties.Slot5" title="@Strings.Slot5Title">
         <settingConfig type="list">
-            <listEntry value="0">@Strings.VO2Max</listEntry>
-            <listEntry value="1">@Strings.Calories</listEntry>
-            <listEntry value="2">@Strings.Distance</listEntry>
-            <listEntry value="3">@Strings.Weather</listEntry>
-            <listEntry value="4">@Strings.Notifications</listEntry>
-            <listEntry value="5">@Strings.Floors</listEntry>
-            <listEntry value="6">@Strings.ActiveMinutes</listEntry>
-            <listEntry value="7">@Strings.Seconds</listEntry>
-            <listEntry value="8">@Strings.WeekNumber</listEntry>
-            <listEntry value="9">@Strings.None</listEntry>
+            <listEntry value="0">@Strings.MDate</listEntry>
+            <listEntry value="1">@Strings.MBattery</listEntry>
+            <listEntry value="2">@Strings.MSteps</listEntry>
+            <listEntry value="3">@Strings.MHeartRate</listEntry>
+            <listEntry value="4">@Strings.MCalories</listEntry>
+            <listEntry value="5">@Strings.MDistance</listEntry>
+            <listEntry value="6">@Strings.MLatitude</listEntry>
+            <listEntry value="7">@Strings.MLongitude</listEntry>
+            <listEntry value="8">@Strings.MSun</listEntry>
+            <listEntry value="9">@Strings.MFloors</listEntry>
+            <listEntry value="10">@Strings.MActiveMin</listEntry>
+            <listEntry value="11">@Strings.MNotifs</listEntry>
+            <listEntry value="12">@Strings.MTemp</listEntry>
+            <listEntry value="13">@Strings.MNone</listEntry>
         </settingConfig>
     </setting>
-    <setting propertyKey="@Properties.DataField5" title="@Strings.DataField5Title">
+    <setting propertyKey="@Properties.Slot6" title="@Strings.Slot6Title">
         <settingConfig type="list">
-            <listEntry value="0">@Strings.VO2Max</listEntry>
-            <listEntry value="1">@Strings.Calories</listEntry>
-            <listEntry value="2">@Strings.Distance</listEntry>
-            <listEntry value="3">@Strings.Weather</listEntry>
-            <listEntry value="4">@Strings.Notifications</listEntry>
-            <listEntry value="5">@Strings.Floors</listEntry>
-            <listEntry value="6">@Strings.ActiveMinutes</listEntry>
-            <listEntry value="7">@Strings.Seconds</listEntry>
-            <listEntry value="8">@Strings.WeekNumber</listEntry>
-            <listEntry value="9">@Strings.None</listEntry>
+            <listEntry value="0">@Strings.MDate</listEntry>
+            <listEntry value="1">@Strings.MBattery</listEntry>
+            <listEntry value="2">@Strings.MSteps</listEntry>
+            <listEntry value="3">@Strings.MHeartRate</listEntry>
+            <listEntry value="4">@Strings.MCalories</listEntry>
+            <listEntry value="5">@Strings.MDistance</listEntry>
+            <listEntry value="6">@Strings.MLatitude</listEntry>
+            <listEntry value="7">@Strings.MLongitude</listEntry>
+            <listEntry value="8">@Strings.MSun</listEntry>
+            <listEntry value="9">@Strings.MFloors</listEntry>
+            <listEntry value="10">@Strings.MActiveMin</listEntry>
+            <listEntry value="11">@Strings.MNotifs</listEntry>
+            <listEntry value="12">@Strings.MTemp</listEntry>
+            <listEntry value="13">@Strings.MNone</listEntry>
         </settingConfig>
     </setting>
-    <setting propertyKey="@Properties.DataField6" title="@Strings.DataField6Title">
+    <setting propertyKey="@Properties.IconSlot" title="@Strings.IconSlotTitle">
         <settingConfig type="list">
-            <listEntry value="0">@Strings.VO2Max</listEntry>
-            <listEntry value="1">@Strings.Calories</listEntry>
-            <listEntry value="2">@Strings.Distance</listEntry>
-            <listEntry value="3">@Strings.Weather</listEntry>
-            <listEntry value="4">@Strings.Notifications</listEntry>
-            <listEntry value="5">@Strings.Floors</listEntry>
-            <listEntry value="6">@Strings.ActiveMinutes</listEntry>
-            <listEntry value="7">@Strings.Seconds</listEntry>
-            <listEntry value="8">@Strings.WeekNumber</listEntry>
-            <listEntry value="9">@Strings.None</listEntry>
+            <listEntry value="0">@Strings.IDayNight</listEntry>
+            <listEntry value="1">@Strings.GHeartRate</listEntry>
+            <listEntry value="2">@Strings.GBodyBattery</listEntry>
+            <listEntry value="3">@Strings.GStress</listEntry>
+            <listEntry value="4">@Strings.GElevation</listEntry>
+            <listEntry value="5">@Strings.GPressure</listEntry>
+            <listEntry value="6">@Strings.GTemp</listEntry>
+            <listEntry value="7">@Strings.IStepsBar</listEntry>
+            <listEntry value="8">@Strings.MNone</listEntry>
         </settingConfig>
     </setting>
-    <setting propertyKey="@Properties.RingGauge1" title="@Strings.RingGauge1Title">
+    <setting propertyKey="@Properties.GreetingSlot" title="@Strings.GreetingSlotTitle">
         <settingConfig type="list">
-            <listEntry value="0">@Strings.HeartRate</listEntry>
-            <listEntry value="1">@Strings.Steps</listEntry>
-            <listEntry value="2">@Strings.Battery</listEntry>
-            <listEntry value="3">@Strings.Calories</listEntry>
-            <listEntry value="4">@Strings.Distance</listEntry>
-            <listEntry value="5">@Strings.Floors</listEntry>
-            <listEntry value="6">@Strings.ActiveMinutes</listEntry>
+            <listEntry value="14">@Strings.MGreeting</listEntry>
+            <listEntry value="0">@Strings.MDate</listEntry>
+            <listEntry value="1">@Strings.MBattery</listEntry>
+            <listEntry value="2">@Strings.MSteps</listEntry>
+            <listEntry value="3">@Strings.MHeartRate</listEntry>
+            <listEntry value="4">@Strings.MCalories</listEntry>
+            <listEntry value="5">@Strings.MDistance</listEntry>
+            <listEntry value="6">@Strings.MLatitude</listEntry>
+            <listEntry value="7">@Strings.MLongitude</listEntry>
+            <listEntry value="8">@Strings.MSun</listEntry>
+            <listEntry value="9">@Strings.MFloors</listEntry>
+            <listEntry value="10">@Strings.MActiveMin</listEntry>
+            <listEntry value="11">@Strings.MNotifs</listEntry>
+            <listEntry value="12">@Strings.MTemp</listEntry>
+            <listEntry value="13">@Strings.MNone</listEntry>
+            <listEntry value="20">@Strings.GHeartRate</listEntry>
+            <listEntry value="21">@Strings.GBodyBattery</listEntry>
+            <listEntry value="22">@Strings.GStress</listEntry>
+            <listEntry value="23">@Strings.GElevation</listEntry>
+            <listEntry value="24">@Strings.GPressure</listEntry>
+            <listEntry value="25">@Strings.GTemp</listEntry>
         </settingConfig>
-    </setting>
-    <setting propertyKey="@Properties.RingGauge2" title="@Strings.RingGauge2Title">
-        <settingConfig type="list">
-            <listEntry value="0">@Strings.HeartRate</listEntry>
-            <listEntry value="1">@Strings.Steps</listEntry>
-            <listEntry value="2">@Strings.Battery</listEntry>
-            <listEntry value="3">@Strings.Calories</listEntry>
-            <listEntry value="4">@Strings.Distance</listEntry>
-            <listEntry value="5">@Strings.Floors</listEntry>
-            <listEntry value="6">@Strings.ActiveMinutes</listEntry>
-        </settingConfig>
-    </setting>
-    <setting propertyKey="@Properties.RingGauge3" title="@Strings.RingGauge3Title">
-        <settingConfig type="list">
-            <listEntry value="0">@Strings.HeartRate</listEntry>
-            <listEntry value="1">@Strings.Steps</listEntry>
-            <listEntry value="2">@Strings.Battery</listEntry>
-            <listEntry value="3">@Strings.Calories</listEntry>
-            <listEntry value="4">@Strings.Distance</listEntry>
-            <listEntry value="5">@Strings.Floors</listEntry>
-            <listEntry value="6">@Strings.ActiveMinutes</listEntry>
-        </settingConfig>
-    </setting>
-    <setting propertyKey="@Properties.TempUnit" title="@Strings.TempUnitTitle">
-        <settingConfig type="list">
-            <listEntry value="0">@Strings.Celsius</listEntry>
-            <listEntry value="1">@Strings.Fahrenheit</listEntry>
-        </settingConfig>
-    </setting>
-    <setting propertyKey="@Properties.DistUnit" title="@Strings.DistUnitTitle">
-        <settingConfig type="list">
-            <listEntry value="0">@Strings.Km</listEntry>
-            <listEntry value="1">@Strings.Miles</listEntry>
-        </settingConfig>
-    </setting>
-    <setting propertyKey="@Properties.AlwaysOnContent" title="@Strings.AlwaysOnTitle">
-        <settingConfig type="list">
-            <listEntry value="0">@Strings.TimeOnly</listEntry>
-            <listEntry value="1">@Strings.TimePlusHR</listEntry>
-            <listEntry value="2">@Strings.TimePlusRings</listEntry>
-        </settingConfig>
-    </setting>
-    <setting propertyKey="@Properties.ShowSeconds" title="@Strings.ShowSecondsTitle">
-        <settingConfig type="boolean"/>
     </setting>
 </settings>

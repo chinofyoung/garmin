@@ -16,12 +16,12 @@ class BezelRenderer {
     var bandMid as Float = 206.0;
     hidden var _sizes as Array<Number> = [22, 18, 16] as Array<Number>;
     hidden var _angles as Array<Number> = [135, 90, 45, 225, 270, 315] as Array<Number>;
-    hidden var _slotArc as Number = 0;   // px available per 70 deg slot at bandMid
+    hidden var _slotArc as Number = 0;   // px per slot at bandMid: 45 deg spacing minus a 4 deg gap each side
 
     function initialize(width as Number, height as Number) {
         _cx = width / 2;
         _cy = height / 2;
-        _slotArc = (bandMid * Math.PI * 70.0 / 180.0).toNumber();
+        _slotArc = (bandMid * Math.PI * 37.0 / 180.0).toNumber();
     }
 
     hidden function _loadFonts() as Void {

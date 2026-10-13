@@ -18,6 +18,6 @@ class WatchFaceApp extends Application.AppBase {
     }
 
     function getInitialView() as [Views] or [Views, InputDelegates] {
-        return [new WatchFaceView(_data, _settings), new WatchFaceDelegate(_settings)];
+        return [new WatchFaceView(_data, _settings), new WatchFaceDelegate()];
     }
 }

@@ -23,14 +23,14 @@ Six slots: three on the top arc (clockwise text) and three on the bottom arc (co
 
 | Slot | Default | Centre angle | Direction | Arc budget |
 |------|---------|--------------|-----------|------------|
-| Top-left | Date `TUESDAY, 13 OCT` | 135° | clockwise | 70° |
-| Top-centre | Steps `8412 / 10000` | 90° | clockwise | 70° |
-| Top-right | Battery `BATTERY 72%` | 45° | clockwise | 70° |
-| Bottom-left | Latitude `14.5995° N` | 225° | counter-clockwise | 70° |
-| Bottom-centre | Heart rate `64 BPM` | 270° | counter-clockwise | 70° |
-| Bottom-right | Longitude `120.9842° E` | 315° | counter-clockwise | 70° |
+| Top-left | Date `TUESDAY, 13 OCT` | 135° | clockwise | 45° |
+| Top-centre | Steps `8412 / 10000` | 90° | clockwise | 45° |
+| Top-right | Battery `BATTERY 72%` | 45° | clockwise | 45° |
+| Bottom-left | Latitude `14.5995° N` | 225° | counter-clockwise | 45° |
+| Bottom-centre | Heart rate `64 BPM` | 270° | counter-clockwise | 45° |
+| Bottom-right | Longitude `120.9842° E` | 315° | counter-clockwise | 45° |
 
-Each slot owns a 70° arc centred on its angle, leaving 20° gaps at 0° and 180° (3 and 9 o'clock) and 0° between neighbours on the same arc; the renderer shrinks a slot's font to 18 then 16 if its string exceeds its arc length at the text radius (arc length = radius × angle in radians; at r≈203 and 70° that is ≈248px). The tick at 12 o'clock is removed, since the top-centre slot occupies it. Metric strings per section 2.
+Slot centres are 45° apart, so each slot owns a 45° arc centred on its angle (≈160px at r≈203), with a built-in 4° (≈14px) gap reserved on each side so neighbours never touch; the renderer shrinks a slot's font to 18 then 16 if its string exceeds (arc − 2×gap) ≈ 132px at the text radius. The 3 and 9 o'clock gaps are 45° wide and stay empty. The tick at 12 o'clock is removed, since the top-centre slot occupies it. Metric strings per section 2.
 
 Spacing rule: the glyph band (from glyph bottoms to glyph tops) must sit at the same radii all the way round, so the gap to the screen edge and the gap to the seconds circle are identical at 12, 3, 6 and 9 o'clock. `drawRadialText` places the baseline on the given radius; clockwise text extends outward from it and counter-clockwise text extends inward. So the radius passed for the lower (counter-clockwise) slots is the upper slots' radius plus the font's glyph height, i.e. `r_ccw = r_cw + fontHeight`. Verified in the simulator at 22px: baseline radius 199 for the top (clockwise) slots and 212 for the bottom (counter-clockwise) slots gives edge gaps of 13.6–14.0px and ring gaps of 12.8–13.6px on all six slots. The renderer derives the radii for the 18/16px fallback sizes from the same formula so the band stays centred. Re-check on a real watch.
 
@@ -39,22 +39,24 @@ Angles use Connect IQ convention (0° = 3 o'clock, counter-clockwise positive). 
 ### Centre column (inside radius 185)
 | Element | Y centre | Font / size | Colour |
 |---------|----------|-------------|--------|
-| Day/night icon | 92 | primitives, 26px tall | white |
-| Hour + minute pair | 222 (vertical centre of hour glyphs) | hour: `Rez.Fonts.HourFont` (Michroma, 85px cap height); minute: `Rez.Fonts.MinuteFont` (Michroma, 27px cap height, renders 26px) | `0xE6E6E6` |
-| Greeting line 1 | 338 | `RobotoCondensedBold` vector 22px | white |
-| Greeting line 2 (name) | 362 | `RobotoCondensedBold` vector 22px | white |
+| Day/night icon | 80 | primitives, 26px tall | white |
+| Hour | 195 (vertical centre of hour glyphs) | `Rez.Fonts.HourFont` (Michroma, **150px cap height — fixed requirement, see below**) | `0xE6E6E6` |
+| Minute | 292 (vertical centre) | `Rez.Fonts.MinuteFont` (Michroma, 40px cap height) | `0xE6E6E6` |
+| Greeting line 1 | 345 | `RobotoCondensedBold` vector 22px | white |
+| Greeting line 2 (name) | 369 | `RobotoCondensedBold` vector 22px | white |
 
 - Icon: moon (filled white circle r=13 with a circle r=11 offset (+6,-3) cut out in the background colour at that spot, which is the grey region) from 18:00 to 05:59; sun (filled circle r=9 plus eight 2px rays of length 5) otherwise.
-- The hour alone is centred on x = 227 (as the "19" in the reference). The minutes are a side element: drawn to the right of the hour with a 6px gap, aligned to the hour's baseline (bottom of the digits), about 32% of the hour height. The hour never moves to make room for them.
-- Fit check (verified): with the widest hour "20" and minutes "44", the minutes' right edge sits ~6px inside the radius-185 ring. 85/27 is the largest pair that passes; 90/29 overflows by 13px. A wider Michroma hour is not possible with side minutes; the user chose this trade-off over stacking.
-- Hour respects the device 12h/24h setting; 12h has no leading zero, 24h is zero-padded. Minutes always zero-padded.
+- **Hour size is a locked requirement: 150px cap height (digit "0" ink height), centred on x = 227, exactly like the "19" in the reference.** The hour never shrinks to make room for anything; every other element adapts around it. `CentreRenderer` exposes the approved size as a single named value `HOUR_CAP_PX = 150`, and every screenshot review measures the rendered hour digit height against it (±2px).
+- Minutes are a 40px side element placed **below the hour's right corner**: right-aligned to the hour's right edge (`hourRight = 227 + hourWidth/2`), top at the hour baseline + 6px. The hour is always two digits, so the minutes' position is stable.
+- Width: unscaled Michroma digits are 184px wide at 150px height, so "20" is 339px of ink and would graze the seconds ring. The digit fonts are therefore generated with a horizontal glyph scale (`--xscale`, 0.82 unless the fit check needs down to 0.75) and zero tracking, keeping the 150px height. Fit check: every hour 00–23 at y = 195 must clear the ring by ≥ 12px at both top corners; the minutes' bottom-right corner clears the ring by ≥ 6px (the renderer shifts the minutes left if needed).
+- Hour respects the device 12h/24h setting and is always zero-padded to two digits in both modes (`07`, `12`, `00`). Minutes always zero-padded.
 - Greeting: 05:00–11:59 `GOOD MORNING,` · 12:00–17:59 `GOOD AFTERNOON,` · 18:00–21:59 `GOOD EVENING,` · else `GOOD NIGHT,`. If the name setting is empty, the trailing comma is dropped and line 2 is omitted.
 - Final Y positions may shift by up to 10px after measuring real glyph metrics; the implementer records the actual values in the plan's test notes.
 
 ### Always-on (low power) mode
 - Black background, no grey region, no bezel text, no icon, no greeting.
 - Seconds track circle in `0x333333`, 1px, with no progress arc (the display only updates once a minute in low power, and the arc would add luminance).
-- Hour and minute in `0x666666` using the same fonts, sizes and side-by-side positions.
+- Hour and minute in `0x666666` using the same fonts, sizes and positions (hour centred, minutes below-right).
 - Burn-in shift: existing `_burnInStep` cycle (−5..+5 px) applied to the circle and digits.
 - Elements must stay inside the display after the ±5px shift (centre column ends at radius 185 so this holds by construction).
 - Validation: screenshot the AOD render; if the lit-pixel fraction looks above the ~10% budget, the implementer reduces to `0x4A4A4A` and notes it.
@@ -79,7 +81,7 @@ Position formatting: `toDegrees()` gives `[lat, lon]`; show absolute value with 
 
 ## 3. Fonts
 
-- `resources/fonts/michroma_hour.fnt` + `.png` (85px) and `resources/fonts/michroma_min.fnt` + `.png` (27px): BMFont-format bitmap fonts containing only the glyphs `0123456789`, rendered from `Michroma-Regular.ttf` (SIL OFL 1.1; licence file kept at `resources/fonts/OFL-Michroma.txt`).
+- `resources/fonts/michroma_hour.fnt` + `.png` (150px) and `resources/fonts/michroma_min.fnt` + `.png` (40px): BMFont-format bitmap fonts containing only the glyphs `0123456789`, rendered from `Michroma-Regular.ttf` (SIL OFL 1.1; licence file kept at `resources/fonts/OFL-Michroma.txt`).
 - Generated by `tools/make_font.py` (Python, Pillow + freetype-py) from `tools/fonts/Michroma-Regular.ttf`. The script is the source of truth; the generated files are committed so the build needs no Python.
 - Declared in `resources/fonts/fonts.xml` as `<font id="HourFont" filename="michroma_hour.fnt" filter="0123456789" antialias="true"/>` etc. `antialias="true"` is required or the digits render with hard jagged edges.
 - `tools/make_font.py` applies a slight stroke emboldening (`--embolden`, ~5% of size) because plain Michroma is noticeably thinner than the reference's digits.
@@ -123,7 +125,7 @@ Null data renders as `--` in place of the number (e.g. `-- BPM`). Units follow t
 
 Icon slot options: `0` day/night icon (section 1); `1`–`6` graph of heart rate, body battery, stress, elevation, pressure, temperature; `7` steps bar; `8` none.
 
-Graphs (shared by both slots, drawn by a `GraphRenderer`): a sparkline sized to the slot (icon slot 120×26px centred at the icon position; greeting slot 160×40px centred on the greeting area), 1px white polyline, min/max auto-scaled with a 1px padding, at most 60 samples, 4-hour window. Data from `Toybox.SensorHistory` via `getHeartRateHistory`, `getBodyBatteryHistory`, `getStressHistory`, `getElevationHistory`, `getPressureHistory`, `getTemperatureHistory`, each called only when `Toybox has :SensorHistory && SensorHistory has :getXHistory`, with `{:period => new Time.Duration(4*3600), :order => SensorHistory.ORDER_NEWEST_FIRST}`. Samples are read into a fixed `Array<Float or Null>` of 60 once per minute (`_lastGraphFetch` timestamp) and never in AOD. If no history or fewer than 2 valid samples, draw a centred 1px dash of 24px in `0x3A3A3E`. Requires the `SensorHistory` permission in the manifest. Steps-over-the-day is not offered as a graph: `ActivityMonitor.getHistory()` is per-day, not intraday. The steps bar (7) is a 120×6px track in `0x3A3A3E` with a white fill proportional to steps/stepGoal (clamped to 100%).
+Graphs (shared by both slots, drawn by a `GraphRenderer`): a sparkline sized to the slot (icon slot 120×26px centred at the icon position; greeting slot 160×40px centred on the greeting area (y ≈ 357)), 1px white polyline, min/max auto-scaled with a 1px padding, at most 60 samples, 4-hour window. Data from `Toybox.SensorHistory` via `getHeartRateHistory`, `getBodyBatteryHistory`, `getStressHistory`, `getElevationHistory`, `getPressureHistory`, `getTemperatureHistory`, each called only when `Toybox has :SensorHistory && SensorHistory has :getXHistory`, with `{:period => new Time.Duration(4*3600), :order => SensorHistory.ORDER_NEWEST_FIRST}`. Samples are read into a fixed `Array<Float or Null>` of 60 once per minute (`_lastGraphFetch` timestamp) and never in AOD. If no history or fewer than 2 valid samples, draw a centred 1px dash of 24px in `0x3A3A3E`. Requires the `SensorHistory` permission in the manifest. Steps-over-the-day is not offered as a graph: `ActivityMonitor.getHistory()` is per-day, not intraday. The steps bar (7) is a 120×6px track in `0x3A3A3E` with a white fill proportional to steps/stepGoal (clamped to 100%).
 
 Greeting slot options: `14` (default) greeting + name on two lines per section 1; `0`–`13` that bezel metric's string on a single line at the line-1 Y (`13` leaves the area empty); `20`–`25` a graph of HR, body battery, stress, elevation, pressure or temperature per the graph rules above.
 

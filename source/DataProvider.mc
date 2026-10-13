@@ -2,159 +2,218 @@ import Toybox.Activity;
 import Toybox.ActivityMonitor;
 import Toybox.Lang;
 import Toybox.System;
-import Toybox.Weather;
-import Toybox.UserProfile;
 import Toybox.Time;
 import Toybox.Time.Gregorian;
+import Toybox.Weather;
+import Toybox.Position;
 
 class DataProvider {
-    // Current values — all nullable
-    var heartRate as Number or Null = null;
-    var steps as Number or Null = null;
-    var stepGoal as Number or Null = null;
-    var battery as Float or Null = null;
-    var calories as Number or Null = null;
-    var distance as Float or Null = null; // in cm from API
-    var floors as Number or Null = null;
-    var vo2max as Number or Null = null;
-    var notifications as Number = 0;
-    var activeMinutes as Number or Null = null;
-    var weatherTemp as Number or Null = null; // Celsius
-    var weatherCondition as Number or Null = null;
-    var sunrise as Time.Moment or Null = null;
-    var sunset as Time.Moment or Null = null;
-    var heartRateZones as Array<Number> or Null = null;
+    hidden var _hour as Number = 0;
+    hidden var _min as Number = 0;
+    hidden var _sec as Number = 0;
+    hidden var _is24 as Boolean = true;
 
-    // Cache control (getTimer() resets on app restart, so cache resets too — acceptable)
-    hidden var _lastWeatherUpdate as Number = -1800000;
-    hidden var _sunDayKey as Number = -1; // month * 100 + day of last sun fetch
-    hidden var WEATHER_CACHE_MS as Number = 1800000; // 30 min
+    hidden var _dayNames as Array<String> = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"] as Array<String>;
+    hidden var _monthNames as Array<String> = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"] as Array<String>;
 
-    function initialize() {
-    }
+    // Position / weather / sun caches
+    hidden var _lat as Float or Null = null;
+    hidden var _lon as Float or Null = null;
+    hidden var _tempC as Number or Null = null;
+    hidden var _sunrise as Time.Moment or Null = null;
+    hidden var _sunset as Time.Moment or Null = null;
+    hidden var _slowFetched as Boolean = false;
+    hidden var _lastSlowFetchS as Number = 0;
+    hidden var _slowIntervalS as Number = 60;
+    hidden var _sunDayKey as Number = -1;
 
-    function refresh() as Void {
-        _refreshActivity();
-        _refreshSystem();
-        _refreshProfile();
-        _refreshWeather();
-    }
+    function initialize() {}
 
-    hidden function _refreshActivity() as Void {
-        var actInfo = Activity.getActivityInfo();
-        if (actInfo != null) {
-            heartRate = actInfo.currentHeartRate;
-        }
+    function refresh(allowSlow as Boolean) as Void {
+        var clock = System.getClockTime();
+        _hour = clock.hour;
+        _min = clock.min;
+        _sec = clock.sec;
+        _is24 = System.getDeviceSettings().is24Hour;
 
-        var monInfo = ActivityMonitor.getInfo();
-        if (monInfo != null) {
-            steps = monInfo.steps;
-            stepGoal = monInfo.stepGoal;
-            calories = monInfo.calories;
-            distance = monInfo.distance; // in cm
-            floors = monInfo.floorsClimbed;
-            var am = monInfo.activeMinutesWeek;
-            if (am != null) {
-                activeMinutes = am.total;
+        if (allowSlow) {
+            var nowS = Time.now().value();
+            if (!_slowFetched || nowS - _lastSlowFetchS >= _slowIntervalS) {
+                _refreshSlow(nowS);
             }
         }
     }
 
-    hidden function _refreshSystem() as Void {
-        var stats = System.getSystemStats();
-        battery = stats.battery;
-
-        var settings = System.getDeviceSettings();
-        notifications = settings.notificationCount;
-    }
-
-    hidden function _refreshProfile() as Void {
-        var profile = UserProfile.getProfile();
-        if (profile != null) {
-            vo2max = profile.vo2maxRunning;
-            heartRateZones = UserProfile.getHeartRateZones(UserProfile.HR_ZONE_SPORT_GENERIC);
+    hidden function _refreshSlow(nowS as Number) as Void {
+        var conditions = Weather.getCurrentConditions();
+        var loc = null;
+        if (conditions != null) {
+            _tempC = conditions.temperature;
+            loc = conditions.observationLocationPosition;
         }
-    }
-
-    hidden function _refreshWeather() as Void {
-        var now = System.getTimer();
-
-        if (now - _lastWeatherUpdate > WEATHER_CACHE_MS) {
-            _lastWeatherUpdate = now;
-            var conditions = Weather.getCurrentConditions();
-            if (conditions != null) {
-                weatherTemp = conditions.temperature;
-                weatherCondition = conditions.condition;
-
-                // Sunrise/sunset: re-query once per day, or if still unknown
-                var nowMoment = Time.now();
-                var d = Gregorian.info(nowMoment, Time.FORMAT_SHORT);
-                var dayKey = d.month * 100 + d.day;
-                if (dayKey != _sunDayKey || sunrise == null || sunset == null) {
-                    var loc = conditions.observationLocationPosition;
-                    if (loc != null) {
-                        sunrise = Weather.getSunrise(loc, nowMoment);
-                        sunset = Weather.getSunset(loc, nowMoment);
-                        if (sunrise != null && sunset != null) {
-                            _sunDayKey = dayKey;
-                        }
-                    } else {
-                        sunrise = null;
-                        sunset = null;
-                    }
-                }
+        if (loc == null) {
+            var act = Activity.getActivityInfo();
+            if (act != null) { loc = act.currentLocation; }
+        }
+        if (loc != null) {
+            var deg = (loc as Position.Location).toDegrees();
+            _lat = deg[0].toFloat();
+            _lon = deg[1].toFloat();
+            var info = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
+            var dayKey = (info.month as Number) * 100 + (info.day as Number);
+            if (dayKey != _sunDayKey || _sunrise == null) {
+                _sunrise = Weather.getSunrise(loc as Position.Location, Time.now());
+                _sunset = Weather.getSunset(loc as Position.Location, Time.now());
+                _sunDayKey = dayKey;
             }
-        }
-    }
-
-    // Helper: get distance in user's preferred unit
-    function getDistanceFormatted(useKm as Boolean) as String {
-        if (distance == null) { return "--"; }
-        // distance from API is in cm
-        var meters = (distance as Float) / 100.0;
-        if (useKm) {
-            return (meters / 1000.0).format("%.1f");
+            _slowFetched = true;
+            _lastSlowFetchS = nowS;
+            _slowIntervalS = 1800;
         } else {
-            return (meters / 1609.34).format("%.1f");
+            _slowFetched = true;
+            _lastSlowFetchS = nowS;
+            _slowIntervalS = 60;
         }
     }
 
-    // Helper: get temp in user's preferred unit
-    function getTempFormatted(useCelsius as Boolean) as String {
-        if (weatherTemp == null) { return "--"; }
-        if (useCelsius) {
-            return weatherTemp.toNumber().toString() + "°";
-        } else {
-            var f = (weatherTemp as Number).toFloat() * 1.8 + 32.0;
-            return (f + (f < 0 ? -0.5 : 0.5)).toNumber().toString() + "°";
+    // ---- time ----
+    function hourString() as String {
+        if (_is24) { return _hour.format("%02d"); }
+        var h = _hour % 12;
+        if (h == 0) { h = 12; }
+        return h.format("%02d");
+    }
+    function minuteString() as String { return _min.format("%02d"); }
+    function second() as Number { return _sec; }
+    function isNight() as Boolean { return _hour >= 18 || _hour < 6; }
+
+    function greetingLine1(name as String) as String {
+        var g;
+        if (_hour >= 5 && _hour < 12) { g = "GOOD MORNING"; }
+        else if (_hour >= 12 && _hour < 18) { g = "GOOD AFTERNOON"; }
+        else if (_hour >= 18 && _hour < 22) { g = "GOOD EVENING"; }
+        else { g = "GOOD NIGHT"; }
+        return name.length() > 0 ? g + "," : g;
+    }
+
+    function dateText() as String {
+        var info = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
+        var dow = (info.day_of_week as Number) - 1;
+        var mon = (info.month as Number) - 1;
+        if (dow < 0 || dow > 6) { dow = 0; }
+        if (mon < 0 || mon > 11) { mon = 0; }
+        return _dayNames[dow] + ", " + (info.day as Number).format("%d") + " " + _monthNames[mon];
+    }
+
+    // ---- metrics ----
+    function metricText(metric as Number) as String {
+        switch (metric) {
+            case METRIC_DATE: return dateText();
+            case METRIC_BATTERY: return _battery();
+            case METRIC_STEPS: return _steps();
+            case METRIC_HR: return _hr();
+            case METRIC_CALORIES: return _calories();
+            case METRIC_DISTANCE: return _distance();
+            case METRIC_LAT: return _coord(_lat, "N", "S");
+            case METRIC_LON: return _coord(_lon, "E", "W");
+            case METRIC_SUN: return _sun();
+            case METRIC_FLOORS: return _floors();
+            case METRIC_ACTIVE_MIN: return _activeMin();
+            case METRIC_NOTIFS: return _notifs();
+            case METRIC_TEMP: return _temp();
+            default: return "";
         }
     }
 
-    // Helper: get HR zone percentage (0.0 to 1.0) for ring arc
-    function getHrZonePercent() as Float {
-        if (heartRate == null || heartRateZones == null) { return 0.0; }
-        var zones = heartRateZones as Array<Number>;
-        if (zones.size() < 2) { return 0.0; }
-        var minHr = zones[0];
-        var maxHr = zones[zones.size() - 1];
-        if (maxHr <= minHr) { return 0.0; }
-        var hr = heartRate as Number;
-        if (hr <= minHr) { return 0.0; }
-        if (hr >= maxHr) { return 1.0; }
-        return (hr - minHr).toFloat() / (maxHr - minHr).toFloat();
+    function stepsPercent() as Float {
+        var info = ActivityMonitor.getInfo();
+        if (info == null || info.steps == null || info.stepGoal == null) { return 0.0; }
+        var goal = info.stepGoal as Number;
+        if (goal <= 0) { return 0.0; }
+        var p = (info.steps as Number).toFloat() / goal.toFloat();
+        return p > 1.0 ? 1.0 : p;
     }
 
-    // Helper: get step goal percentage (0.0 to 1.0)
-    function getStepGoalPercent() as Float {
-        if (steps == null || stepGoal == null || stepGoal == 0) { return 0.0; }
-        var pct = (steps as Number).toFloat() / (stepGoal as Number).toFloat();
-        if (pct > 1.0) { return 1.0; }
-        return pct;
+    hidden function _battery() as String {
+        var b = System.getSystemStats().battery as Float or Null;
+        if (b == null) { return "BATTERY --"; }
+        return "BATTERY " + b.toNumber().format("%d") + "%";
     }
 
-    // Helper: get battery percentage (0.0 to 1.0)
-    function getBatteryPercent() as Float {
-        if (battery == null) { return 0.0; }
-        return (battery as Float) / 100.0;
+    hidden function _steps() as String {
+        var info = ActivityMonitor.getInfo();
+        var s = info != null ? info.steps : null;
+        var g = info != null ? info.stepGoal : null;
+        return (s != null ? s.format("%d") : "--") + " / " + (g != null ? g.format("%d") : "--");
+    }
+
+    hidden function _hr() as String {
+        var act = Activity.getActivityInfo();
+        var hr = act != null ? act.currentHeartRate : null;
+        return (hr != null ? hr.format("%d") : "--") + " BPM";
+    }
+
+    hidden function _calories() as String {
+        var info = ActivityMonitor.getInfo();
+        var c = info != null ? info.calories : null;
+        return (c != null ? c.format("%d") : "--") + " KCAL";
+    }
+
+    hidden function _distance() as String {
+        var info = ActivityMonitor.getInfo();
+        var d = info != null ? info.distance : null; // centimetres
+        var metric = System.getDeviceSettings().distanceUnits == System.UNIT_METRIC;
+        if (d == null) { return metric ? "-- KM" : "-- MI"; }
+        var m = d.toFloat() / 100.0;
+        if (metric) { return (m / 1000.0).format("%.1f") + " KM"; }
+        return (m / 1609.344).format("%.1f") + " MI";
+    }
+
+    hidden function _coord(v as Float or Null, pos as String, neg as String) as String {
+        if (v == null) { return "--° " + pos; }
+        var f = v as Float;
+        var hemi = f >= 0 ? pos : neg;
+        if (f < 0) { f = -f; }
+        return f.format("%.4f") + "° " + hemi;
+    }
+
+    hidden function _sun() as String {
+        if (_sunrise == null || _sunset == null) { return "SUN --:-- - --:--"; }
+        return "SUN " + _clock(_sunrise as Time.Moment) + " - " + _clock(_sunset as Time.Moment);
+    }
+
+    hidden function _clock(m as Time.Moment) as String {
+        var info = Gregorian.info(m, Time.FORMAT_SHORT);
+        var h = info.hour as Number;
+        if (!_is24) { h = h % 12; if (h == 0) { h = 12; } }
+        return h.format("%d") + ":" + (info.min as Number).format("%02d");
+    }
+
+    hidden function _floors() as String {
+        var info = ActivityMonitor.getInfo();
+        var f = info != null ? info.floorsClimbed : null;
+        return (f != null ? f.format("%d") : "--") + " FLOORS";
+    }
+
+    hidden function _activeMin() as String {
+        var info = ActivityMonitor.getInfo();
+        var am = info != null ? info.activeMinutesWeek : null;
+        var t = am != null ? am.total : null;
+        return (t != null ? t.format("%d") : "--") + " ACTIVE MIN";
+    }
+
+    hidden function _notifs() as String {
+        var n = System.getDeviceSettings().notificationCount;
+        return (n != null ? n.format("%d") : "--") + " NOTIFS";
+    }
+
+    hidden function _temp() as String {
+        var celsius = System.getDeviceSettings().temperatureUnits == System.UNIT_METRIC;
+        if (_tempC == null) { return celsius ? "--°C" : "--°F"; }
+        var t = _tempC as Number;
+        if (celsius) { return t.format("%d") + "°C"; }
+        var f = t.toFloat() * 1.8 + 32.0;
+        f = f >= 0 ? f + 0.5 : f - 0.5;
+        return f.toNumber().format("%d") + "°F";
     }
 }

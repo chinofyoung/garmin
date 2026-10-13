@@ -1,86 +1,66 @@
 import Toybox.Application;
-import Toybox.Graphics;
 import Toybox.Lang;
 
-enum DataFieldType {
-    FIELD_VO2MAX = 0,
-    FIELD_CALORIES = 1,
-    FIELD_DISTANCE = 2,
-    FIELD_WEATHER = 3,
-    FIELD_NOTIFICATIONS = 4,
-    FIELD_FLOORS = 5,
-    FIELD_ACTIVE_MINUTES = 6,
-    FIELD_SECONDS = 7,
-    FIELD_WEEK_NUMBER = 8,
-    FIELD_NONE = 9
+enum BezelMetric {
+    METRIC_DATE = 0, METRIC_BATTERY = 1, METRIC_STEPS = 2, METRIC_HR = 3,
+    METRIC_CALORIES = 4, METRIC_DISTANCE = 5, METRIC_LAT = 6, METRIC_LON = 7,
+    METRIC_SUN = 8, METRIC_FLOORS = 9, METRIC_ACTIVE_MIN = 10, METRIC_NOTIFS = 11,
+    METRIC_TEMP = 12, METRIC_NONE = 13, METRIC_GREETING = 14,
+    GRAPH_HR = 20, GRAPH_BODY_BATTERY = 21, GRAPH_STRESS = 22,
+    GRAPH_ELEVATION = 23, GRAPH_PRESSURE = 24, GRAPH_TEMP = 25
 }
 
-enum RingGaugeType {
-    RING_HR = 0,
-    RING_STEPS = 1,
-    RING_BATTERY = 2,
-    RING_CALORIES = 3,
-    RING_DISTANCE = 4,
-    RING_FLOORS = 5,
-    RING_ACTIVE_MINUTES = 6
-}
-
-enum ColorSchemeType {
-    SCHEME_RED_GREEN = 0,
-    SCHEME_BLUE_PURPLE = 1,
-    SCHEME_ORANGE_CYAN = 2,
-    SCHEME_MONOCHROME = 3
-}
-
-enum AlwaysOnType {
-    AOD_TIME_ONLY = 0,
-    AOD_TIME_HR = 1,
-    AOD_TIME_RINGS = 2
+enum IconSlotType {
+    ICON_DAYNIGHT = 0, ICON_GRAPH_HR = 1, ICON_GRAPH_BODY_BATTERY = 2, ICON_GRAPH_STRESS = 3,
+    ICON_GRAPH_ELEVATION = 4, ICON_GRAPH_PRESSURE = 5, ICON_GRAPH_TEMP = 6,
+    ICON_STEPS_BAR = 7, ICON_NONE = 8
 }
 
 class SettingsManager {
-    var colorScheme as Number = SCHEME_RED_GREEN;
-    var dataFields as Array<Number> = [FIELD_VO2MAX, FIELD_CALORIES, FIELD_DISTANCE, FIELD_WEATHER, FIELD_FLOORS, FIELD_NOTIFICATIONS] as Array<Number>;
-    var ringGauges as Array<Number> = [RING_HR, RING_STEPS, RING_BATTERY] as Array<Number>;
-    var tempCelsius as Boolean = true;
-    var distKm as Boolean = true;
-    var alwaysOnContent as Number = AOD_TIME_ONLY;
-    var showSeconds as Boolean = false;
+    var userName as String = "";
+    var slots as Array<Number> = [METRIC_DATE, METRIC_STEPS, METRIC_BATTERY, METRIC_LAT, METRIC_HR, METRIC_LON] as Array<Number>;
+    var iconSlot as Number = ICON_DAYNIGHT;
+    var greetingSlot as Number = METRIC_GREETING;
+
+    hidden var _slotKeys as Array<String> = ["Slot1", "Slot2", "Slot3", "Slot4", "Slot5", "Slot6"] as Array<String>;
+    hidden var _slotDefaults as Array<Number> = [METRIC_DATE, METRIC_STEPS, METRIC_BATTERY, METRIC_LAT, METRIC_HR, METRIC_LON] as Array<Number>;
 
     function initialize() {
         loadSettings();
     }
 
     function loadSettings() as Void {
-        colorScheme = Application.Properties.getValue("ColorScheme") as Number;
-        dataFields[0] = Application.Properties.getValue("DataField1") as Number;
-        dataFields[1] = Application.Properties.getValue("DataField2") as Number;
-        dataFields[2] = Application.Properties.getValue("DataField3") as Number;
-        dataFields[3] = Application.Properties.getValue("DataField4") as Number;
-        dataFields[4] = Application.Properties.getValue("DataField5") as Number;
-        dataFields[5] = Application.Properties.getValue("DataField6") as Number;
-        ringGauges[0] = Application.Properties.getValue("RingGauge1") as Number;
-        ringGauges[1] = Application.Properties.getValue("RingGauge2") as Number;
-        ringGauges[2] = Application.Properties.getValue("RingGauge3") as Number;
-        tempCelsius = (Application.Properties.getValue("TempUnit") as Number) == 0;
-        distKm = (Application.Properties.getValue("DistUnit") as Number) == 0;
-        alwaysOnContent = Application.Properties.getValue("AlwaysOnContent") as Number;
-        showSeconds = Application.Properties.getValue("ShowSeconds") as Boolean;
+        var name = _readValue("UserName");
+        if (name instanceof String) {
+            var s = name as String;
+            if (s.length() > 14) { s = s.substring(0, 14) as String; }
+            userName = s.toUpper();
+        } else {
+            userName = "";
+        }
+        for (var i = 0; i < 6; i++) {
+            slots[i] = _readNumber(_slotKeys[i], _slotDefaults[i], 0, METRIC_NONE);
+        }
+        iconSlot = _readNumber("IconSlot", ICON_DAYNIGHT, 0, ICON_NONE);
+        var g = _readNumber("GreetingSlot", METRIC_GREETING, 0, GRAPH_TEMP);
+        if (g > METRIC_GREETING && g < GRAPH_HR) { g = METRIC_GREETING; }
+        greetingSlot = g;
     }
 
-    // Returns [ring1Color, ring2Color, ring3Color, labelColor] for current scheme
-    function getColorPalette() as Array<Number> {
-        switch (colorScheme) {
-            case SCHEME_RED_GREEN:
-                return [0xFF3B30, 0x30D158, 0xFFCC00, 0x999999] as Array<Number>;
-            case SCHEME_BLUE_PURPLE:
-                return [0x0A84FF, 0xBF5AF2, 0x64D2FF, 0x999999] as Array<Number>;
-            case SCHEME_ORANGE_CYAN:
-                return [0xFF9F0A, 0x64D2FF, 0x30D158, 0x999999] as Array<Number>;
-            case SCHEME_MONOCHROME:
-                return [0xAAAAAA, 0x888888, 0x666666, 0x999999] as Array<Number>;
-            default:
-                return [0xFF3B30, 0x30D158, 0xFFCC00, 0x999999] as Array<Number>;
+    hidden function _readValue(key as String) as Application.PropertyValueType {
+        try {
+            return Application.Properties.getValue(key);
+        } catch (e instanceof Lang.Exception) {
+            return null;
         }
+    }
+
+    // Reads a numeric property and clamps it into [min, max]; non-numbers fall back to def.
+    hidden function _readNumber(key as String, def as Number, min as Number, max as Number) as Number {
+        var v = _readValue(key);
+        if (!(v instanceof Number)) { return def; }
+        var n = v as Number;
+        if (n < min || n > max) { return def; }
+        return n;
     }
 }
